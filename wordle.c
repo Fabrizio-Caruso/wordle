@@ -55,7 +55,7 @@ unsigned short read_dict(unsigned char dict_file)
     count=0;
     while(!feof(fd))
     {
-        fscanf(fd, "%s",&dict[count]);
+        fscanf(fd, "%5s",&dict[count]);
         ++count;
     }
     
@@ -112,7 +112,7 @@ void instructions(void)
 int main(int argc, char **argv)
 {
     unsigned char attempt_number;
-    char yn;
+    char yn[5];
     unsigned char i;
     unsigned char j;
     unsigned char char_found;
@@ -147,7 +147,7 @@ int main(int argc, char **argv)
         while(attempt_number<=MAX_ATTEMPTS)
         {
             printf("\nTry no. %d\n", attempt_number);
-            scanf("%s", attempt);
+            scanf("%5s", attempt);
             
             
             if(!in_dict(attempt))
@@ -215,12 +215,12 @@ int main(int argc, char **argv)
             getchar();
             printf("Play again (Y/N)\n");
 
-            scanf("%c",&yn);
+            scanf("%4s",yn);
         
 
-        } while((yn!='y')&&(yn!='Y')&&(yn!='n')&&(yn!='N'));
+        } while((yn[0]!='y')&&(yn[0]!='Y')&&(yn[0]!='n')&&(yn[0]!='N'));
         
-        if((yn!='y')&&(yn!='Y'))
+        if((yn[0]!='y')&&(yn[0]!='Y'))
         {
             break;
         }
