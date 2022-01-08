@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define DICT_SIZE 9999
+#define MAX_DICT_SIZE 9999
 
 #define ENG_DICT_FILE "5_letter_words_ENG.txt"
 #define FRA_DICT_FILE "5_letter_words_FRA.txt"
@@ -16,9 +16,9 @@
 
 #define MAX_ATTEMPTS 6
 
-#define DEBUG
+// #define DEBUG
 
-char dict[DICT_SIZE][6];
+char dict[MAX_DICT_SIZE][6];
 
 char attempt[6];
 
@@ -28,12 +28,13 @@ char secret[6];
 
 unsigned char dict_file;
 
+unsigned short dict_size;
 
 
-void read_dict(unsigned char dict_file)
+unsigned short read_dict(unsigned char dict_file)
 {
     FILE *fd;
-    int i;
+    int count;
     int j;
 
     switch(dict_file)
@@ -51,19 +52,18 @@ void read_dict(unsigned char dict_file)
         break;
     }
 
-    // for(i=0;i<DICT_SIZE;++i)
-    i=0;
+    count=0;
     while(!feof(fd))
     {
-        fscanf(fd, "%s",&dict[i]);
-        ++i;
+        fscanf(fd, "%s",&dict[count]);
+        ++count;
     }
     
     #if defined(DEBUG)
     printf("\n");
 
-    printf("Number of words in dictionary: %d\n", i);
-    // for(j=0;j<i;++j)
+    printf("Number of words in dictionary: %d\n", count);
+    // for(j=0;j<count;++j)
     // {
         // printf("%s ", dict[j]);
     // }
@@ -72,6 +72,8 @@ void read_dict(unsigned char dict_file)
 
 
     fclose(fd);
+    
+    return count;
 }
 
 
@@ -80,7 +82,7 @@ unsigned char in_dict(const char *word)
     unsigned char found = 0;
     unsigned short i;
     
-    for(i=0;i<DICT_SIZE;++i)
+    for(i=0;i<dict_size;++i)
     {
         // printf("comparing with %s\n", dict[i]);
         if(!strcmp(word,dict[i]))
@@ -89,6 +91,21 @@ unsigned char in_dict(const char *word)
         }
     }
     return 0;
+}
+
+
+void instructions(void)
+{
+    printf("----------------------------------------------------------\n");
+    printf("                     INSTRUCTIONS\n");
+    printf("----------------------------------------------------------\n");
+    
+    printf("Guess a 5-letter secret word in max 6 attempts\n");
+    printf("'-' means letter nowhere in the secret word\n");
+    printf("'*' means letter elsewhere in the secret word\n");
+    printf("A displayed letter is correct in the displayed place\n");
+    printf("----------------------------------------------------------\n");
+
 }
 
 
@@ -101,33 +118,35 @@ int main(int argc, char **argv)
     unsigned char char_found;
     unsigned char word_found;
 
+    printf("\n\n\n----------------------------------------------------------\n");
+    printf("                      WORDLE\n");
+    printf("        ANSI C version by Fabrizio Caruso\n");
+
+    instructions();
     printf("\nChoose language (1 = English, 2 = French, 3 = Italian)");
     
     scanf("%d", &dict_file);
     
-    read_dict(dict_file);
+    dict_size = read_dict(dict_file);
     srand(time(NULL));
 
     while(1){
         
-        secret_index = rand()%DICT_SIZE;
+        secret_index = rand()%dict_size;
         strcpy(secret,dict[secret_index]);
         
-        printf("\n\n\n--------------------------------");
+        printf("\n\n--------------------------------\n");
         
         #if defined(DEBUG)
             printf("secret: %s\n", secret);
         #endif
         
 
-        
-        printf("\n\n\n--------------------------------");
-
         attempt_number = 1;
         word_found = 0;
         while(attempt_number<=MAX_ATTEMPTS)
         {
-            printf("\nAttempt number: %d\n", attempt_number);
+            printf("\nTry no. %d\n", attempt_number);
             scanf("%s", attempt);
             
             
@@ -173,8 +192,7 @@ int main(int argc, char **argv)
                         }
                     }
                     printf("\n");
-                }
-                    
+                }  
             }
         }
         
