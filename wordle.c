@@ -4,15 +4,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_DICT_SIZE 9999
+#define MAX_DICT_SIZE 19999
 
 #define ENG_DICT_FILE "5_letter_words_ENG.txt"
 #define FRA_DICT_FILE "5_letter_words_FRA.txt"
 #define ITA_DICT_FILE "5_letter_words_ITA.txt"
+#define ROM_DICT_FILE "5_letter_words_ROM.txt"
 
 #define ENG 1
 #define FRA 2
 #define ITA 3
+#define ROM 4
 
 #define MAX_ATTEMPTS 6
 
@@ -47,6 +49,10 @@ unsigned short read_dict(unsigned char dict_file)
             fd = fopen(ITA_DICT_FILE, "r");
         break;
         
+        case ROM:
+            fd = fopen(ROM_DICT_FILE, "r");
+        break;
+        
         default:
             fd = fopen(ENG_DICT_FILE, "r");
         break;
@@ -59,15 +65,16 @@ unsigned short read_dict(unsigned char dict_file)
         ++count;
     }
     
-    #if defined(DEBUG)
     printf("\n");
 
     printf("Number of words in dictionary: %d\n", count);
-    // for(j=0;j<count;++j)
-    // {
-        // printf("%s ", dict[j]);
-    // }
-    // printf("\n");
+    
+    #if defined(DEBUG)
+        for(j=0;j<count;++j)
+        {
+            printf("%s ", dict[j]);
+        }
+        printf("\n");
     #endif
 
 
@@ -102,9 +109,13 @@ void instructions(void)
     
     printf("Guess a 5-letter secret word in max 6 attempts\n");
     printf("'-' means letter nowhere in the secret word\n");
-    printf("'*' means letter elsewhere in the secret word\n");
+    printf("'*' means letter present elsewhere in the secret word\n");
     printf("A displayed letter is correct in the displayed place\n");
     printf("----------------------------------------------------------\n");
+    printf("Only small letters and no diacritics\n");
+    printf("Insert 'x' to give up\n");
+    printf("----------------------------------------------------------\n");
+
 
 }
 
@@ -118,12 +129,12 @@ int main(int argc, char **argv)
     unsigned char char_found;
     unsigned char word_found;
 
-    printf("\n\n\n----------------------------------------------------------\n");
+    printf("\n\n\n----------------------------------------------------------------\n");
     printf("                      WORDLE\n");
     printf("        ANSI C version by Fabrizio Caruso\n");
 
     instructions();
-    printf("\nChoose language (1 = English, 2 = French, 3 = Italian)");
+    printf("\nChoose language (1 = English, 2 = French, 3 = Italian, 4 = Romanian)");
     
     scanf("%d", &dict_file);
     
@@ -149,6 +160,10 @@ int main(int argc, char **argv)
             printf("\nTry no. %d\n", attempt_number);
             scanf("%5s", attempt);
             
+            if(!strcmp("x",attempt))
+            {
+                break;
+            }
             
             if(!in_dict(attempt))
             {
