@@ -103,18 +103,18 @@ unsigned char in_dict(const char *word)
 
 void instructions(void)
 {
-    printf("----------------------------------------------------------\n");
+    printf("-----------------------------------------------------------------------------\n");
     printf("                     INSTRUCTIONS\n");
-    printf("----------------------------------------------------------\n");
+    printf("-----------------------------------------------------------------------------\n");
     
     printf("Guess a 5-letter secret word in max 6 attempts\n");
     printf("'-' means letter nowhere in the secret word\n");
-    printf("'*' means letter present elsewhere in the secret word\n");
+    printf("'*' means letter present elsewhere in the secret word excluding found letters\n");
     printf("A displayed letter is correct in the displayed place\n");
-    printf("----------------------------------------------------------\n");
+    printf("-----------------------------------------------------------------------------\n");
     printf("Only small letters and no diacritics\n");
     printf("Insert 'x' to give up\n");
-    printf("----------------------------------------------------------\n");
+    printf("-----------------------------------------------------------------------------\n");
 
 
 }
@@ -128,23 +128,52 @@ int main(int argc, char **argv)
     unsigned char j;
     unsigned char char_found;
     unsigned char word_found;
+    unsigned char insert_secret_words;
 
     printf("\n\n\n----------------------------------------------------------------\n");
     printf("                      WORDLE\n");
     printf("        ANSI C version by Fabrizio Caruso\n");
 
     instructions();
-    printf("\nChoose language (1 = English, 2 = French, 3 = Italian, 4 = Romanian)");
+    printf("\nChoose language (1 = English, 2 = French, 3 = Italian, 4 = Romanian) ");
     
     scanf("%d", &dict_file);
     
     dict_size = read_dict(dict_file);
     srand(time(NULL));
 
+    printf("\nDo you want to insert the secret words (y/n) ?");
+    do
+    {
+        scanf("%4s",yn);
+
+    } while((yn[0]!='y')&&(yn[0]!='Y')&&(yn[0]!='n')&&(yn[0]!='N'));
+    
+    if((yn[0]!='y')&&(yn[0]!='Y'))
+    {
+        insert_secret_words = 0;
+    }
+    else
+    {
+        insert_secret_words = 1;
+    }
+
     while(1){
         
-        secret_index = rand()%dict_size;
-        strcpy(secret,dict[secret_index]);
+        if(!insert_secret_words)
+        {
+        
+            secret_index = rand()%dict_size;
+            strcpy(secret,dict[secret_index]);
+        }
+        else
+        {
+            do
+            {
+                printf("Insert secret word\n");
+                scanf("%5s", secret);
+            } while(!in_dict(secret));
+        }
         
         printf("\n\n--------------------------------\n");
         
@@ -190,7 +219,7 @@ int main(int argc, char **argv)
                             for(j=0;j<5;++j)
                             {
                                 char_found = 0;
-                                if(secret[j]==attempt[i])
+                                if((secret[j]==attempt[i]) && (secret[j]!=attempt[j])) // Search letter among letters of secret word not yet guessed
                                 {
                                     char_found = 1;
                                     break;
@@ -231,7 +260,6 @@ int main(int argc, char **argv)
             printf("Play again (Y/N)\n");
 
             scanf("%4s",yn);
-        
 
         } while((yn[0]!='y')&&(yn[0]!='Y')&&(yn[0]!='n')&&(yn[0]!='N'));
         
