@@ -132,7 +132,7 @@ void instructions(void)
     
     printf("Guess a 5-letter secret word in max 6 attempts\n");
     printf("'-' means letter nowhere in the secret word\n");
-    printf("'*' means this letter is missing elsewhere at least once (for each '*')\n");
+    printf("'*' one occurence of this letter is elsewhere for each '*' on the same letter\n");
     printf("A displayed letter means that it is correct in the displayed place\n");
     printf("-----------------------------------------------------------------------------\n");
     printf("Only small letters and no diacritics\n");
@@ -153,7 +153,7 @@ int main(int argc, char **argv)
     unsigned char word_found;
     unsigned char insert_secret_words;
 
-    printf("\n\n\n----------------------------------------------------------------\n");
+    printf("\n\n\n-----------------------------------------------------------------------------\n");
     printf("                      WORDLE\n");
     printf("        ANSI C version by Fabrizio Caruso\n");
 
@@ -241,12 +241,21 @@ int main(int argc, char **argv)
                 }
                 else
                 {
+                    // First compute frequencies of exact matches
+                    for(i=0;i<5;++i)
+                    {
+                        if(secret[i]==attempt[i])
+                        {
+                            ++hint[attempt[i]];
+                        }
+                    }           
+                    
+                    // Compute matches and partial matches
                     for(i=0;i<5;++i)
                     {
                         if(secret[i]==attempt[i])
                         {
                             printf("%c",secret[i]);
-                            ++hint[attempt[i]];
                         }
                         else
                         {
@@ -254,8 +263,8 @@ int main(int argc, char **argv)
                             {
                                 char_found = 0;
                                 if((secret[j]==attempt[i]) && 
-                                   (hint[attempt[i]]<freq[attempt[i]])
-                                   ) // Search letter among letters of secret word not yet guessed
+                                   (hint[attempt[i]]<freq[attempt[i]]) // # hints of a letter in wrong position <= # occurrences of the letter in secret word
+                                   ) 
                                 {
                                     char_found = 1;
                                     break;
