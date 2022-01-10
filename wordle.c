@@ -32,6 +32,8 @@ unsigned char dict_file;
 
 unsigned short dict_size;
 
+unsigned char freq[100];
+unsigned char hint[100];
 
 unsigned short read_dict(unsigned char dict_file)
 {
@@ -83,6 +85,27 @@ unsigned short read_dict(unsigned char dict_file)
     return count;
 }
 
+void reset_freq(unsigned char *vect)
+{
+    unsigned char i;
+    
+    for(i='a';i<'z';++i)
+    {
+        vect[i] = 0;
+    }
+}
+
+void compute_freq(void)
+{
+    unsigned char i;
+    
+    reset_freq(freq);
+    
+    for(i=0;i<5;++i)
+    {
+        ++freq[secret[i]];
+    }
+}
 
 unsigned char in_dict(const char *word)
 {
@@ -109,8 +132,8 @@ void instructions(void)
     
     printf("Guess a 5-letter secret word in max 6 attempts\n");
     printf("'-' means letter nowhere in the secret word\n");
-    printf("'*' means letter present elsewhere in the secret word excluding found letters\n");
-    printf("A displayed letter is correct in the displayed place\n");
+    printf("'*' means this letter is missing elsewhere at least once (for each '*')\n");
+    printf("A displayed letter means that it is correct in the displayed place\n");
     printf("-----------------------------------------------------------------------------\n");
     printf("Only small letters and no diacritics\n");
     printf("Insert 'x' to give up\n");
@@ -175,6 +198,13 @@ int main(int argc, char **argv)
             } while(!in_dict(secret));
         }
         
+        compute_freq();
+        
+        // for(i='a';i<'z';++i)
+        // {
+            // printf("%d", freq[i]);
+        // }
+        
         printf("\n\n--------------------------------\n");
         
         #if defined(DEBUG)
@@ -200,6 +230,9 @@ int main(int argc, char **argv)
             }
             else
             {
+                
+                reset_freq(hint);
+                
                 ++attempt_number;
                 if(!strcmp(secret,attempt))
                 {
@@ -213,13 +246,16 @@ int main(int argc, char **argv)
                         if(secret[i]==attempt[i])
                         {
                             printf("%c",secret[i]);
+                            ++hint[attempt[i]];
                         }
                         else
                         {
                             for(j=0;j<5;++j)
                             {
                                 char_found = 0;
-                                if((secret[j]==attempt[i]) && (secret[j]!=attempt[j])) // Search letter among letters of secret word not yet guessed
+                                if((secret[j]==attempt[i]) && 
+                                   (hint[attempt[i]]<freq[attempt[i]])
+                                   ) // Search letter among letters of secret word not yet guessed
                                 {
                                     char_found = 1;
                                     break;
@@ -227,7 +263,8 @@ int main(int argc, char **argv)
                             }
                             if(char_found)
                             {    
-                                printf("*");   
+                                printf("*");
+                                ++hint[attempt[i]];
                             }
                             else
                             {
