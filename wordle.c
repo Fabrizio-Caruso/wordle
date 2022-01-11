@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <unistd.h>
+
 #define MAX_DICT_SIZE 19999
 
 #define ENG_DICT_FILE "5_letter_words_ENG.txt"
@@ -17,6 +19,15 @@
 #define ROM 4
 
 #define MAX_ATTEMPTS 6
+
+
+#ifdef _WIN32
+#define clrscr() system("cls");
+#else
+#include <stdio.h>
+#define clrscr() printf("\e[1;1H\e[2J")
+#endif
+
 
 // #define DEBUG
 
@@ -203,21 +214,6 @@ void challenge(void)
     clock_t start_t;
     clock_t elapsed_time;
 
-    if(!insert_secret_words)
-    {
-    
-        secret_index = rand()%dict_size;
-        strcpy(secret,dict[secret_index]);
-    }
-    else
-    {
-        do
-        {
-            printf("Insert secret word\n");
-            scanf("%5s", secret);
-        } while(!in_dict(secret));
-    }
-    
     compute_freq();
     
     // for(i='a';i<'z';++i)
@@ -225,7 +221,7 @@ void challenge(void)
         // printf("%d", freq[i]);
     // }
 
-
+    // clrscr();
     printf("\n\n--------------------------------\n");
     
     #if defined(DEBUG)
@@ -340,6 +336,7 @@ int main(int argc, char **argv)
     
     char yn[5];
 
+    clrscr();
     printf("\n\n\n-----------------------------------------------------------------------------\n");
     printf("                      WORDLE\n");
     printf("        ANSI C version by Fabrizio Caruso\n");
@@ -376,9 +373,31 @@ int main(int argc, char **argv)
         total_score = 0;
         for(i=1;i<=number_of_challenges;++i)
         {
+            
+            if(!insert_secret_words)
+            {
+            
+                secret_index = rand()%dict_size;
+                strcpy(secret,dict[secret_index]);
+            }
+            else
+            {
+                do
+                {
+                    clrscr();
+                    printf("Insert secret word\n");
+                    scanf("%5s", secret);
+                } while(!in_dict(secret));
+            }
+
+            clrscr();
+
             printf("\n-----------------------------------------------------------------------------\n");
             printf("Challenge no. %d\n", i);
             printf(  "-----------------------------------------------------------------------------\n");
+
+
+    
 
             challenge();
             printf("SCORE: %5d", score);
@@ -386,9 +405,13 @@ int main(int argc, char **argv)
             {
                 printf(" MAX SCORE !");
             }
-            printf("\n\n\n");
+            printf("\n");
             total_score+=score;
             printf("TOTAL SCORE: %5d\n", total_score);
+
+            getchar();
+            sleep(2);
+            getchar();
         }
         
         do
