@@ -20,6 +20,7 @@
 
 #define MAX_ATTEMPTS 6
 
+#define MAX_PLAYERS 9
 
 #ifdef _WIN32
 #define clrscr() system("cls");
@@ -37,8 +38,6 @@ char attempt[6];
 
 unsigned short secret_index;
 
-char secret[6];
-
 unsigned char dict_file;
 
 unsigned short dict_size;
@@ -48,9 +47,9 @@ unsigned short hint[400];
 
 unsigned char insert_secret_words;
 
-unsigned short score;
+unsigned short score[MAX_PLAYERS];
 
-unsigned short total_score;
+unsigned short total_score[MAX_PLAYERS];
 
 
 unsigned short read_dict(unsigned char dict_file)
@@ -113,7 +112,7 @@ void reset_freq(unsigned short *vect)
     }
 }
 
-void compute_freq(void)
+void compute_secret_freq(char *secret)
 {
     unsigned char i;
     
@@ -202,7 +201,7 @@ unsigned short compute_score(unsigned char word_found, unsigned char attempt_num
 }
 
 
-void challenge(void)
+void challenge(char *secret, unsigned char player)
 {  
     unsigned char attempt_number;
     unsigned char i;
@@ -214,14 +213,8 @@ void challenge(void)
     clock_t start_t;
     clock_t elapsed_time;
 
-    compute_freq();
+    compute_secret_freq(secret);
     
-    // for(i='a';i<'z';++i)
-    // {
-        // printf("%d", freq[i]);
-    // }
-
-    // clrscr();
     printf("\n\n--------------------------------\n");
     
     #if defined(DEBUG)
@@ -323,9 +316,7 @@ void challenge(void)
     elapsed_time = clock() / (CLOCKS_PER_SEC) - start_t;
     printf("Attempts: %d\n", attempt_number);
     printf("Time: %d\n", elapsed_time);
-    score = compute_score(word_found, attempt_number, exact_matches, elapsed_time);
-
-    
+    score[player] = compute_score(word_found, attempt_number, exact_matches, elapsed_time);   
 }
 
 
@@ -333,44 +324,71 @@ int main(int argc, char **argv)
 {
     unsigned char i;
     unsigned short number_of_challenges;
-    
+    unsigned char number_of_players;
+    unsigned char player;
+    char secret[6];    
     char yn[5];
 
-    clrscr();
-    printf("\n\n\n-----------------------------------------------------------------------------\n");
-    printf("                      WORDLE\n");
-    printf("        ANSI C version by Fabrizio Caruso\n");
-
-    instructions();
-    printf("\nChoose language (1 = English, 2 = French, 3 = Italian, 4 = Romanian) ");
-    
-    scanf("%d", &dict_file);
-    
-    dict_size = read_dict(dict_file);
-    srand(time(NULL));
-
-    printf("\nDo you want to insert the secret words (y/n) ?");
-    do
+    while(1)
     {
-        scanf("%4s",yn);
+        clrscr();
+        printf("\n\n\n-----------------------------------------------------------------------------\n");
+        printf("                      WORDLE\n");
+        printf("        ANSI C version by Fabrizio Caruso\n");
 
-    } while((yn[0]!='y')&&(yn[0]!='Y')&&(yn[0]!='n')&&(yn[0]!='N'));
-    
-    if((yn[0]!='y')&&(yn[0]!='Y'))
-    {
-        insert_secret_words = 0;
-    }
-    else
-    {
-        insert_secret_words = 1;
-    }
-
-    printf("\nHow many challenges per game?");
-    scanf("%d", &number_of_challenges);
-    
-    while(1){
+        instructions();
+        printf("\nChoose language (1 = English, 2 = French, 3 = Italian, 4 = Romanian) ");
         
-        total_score = 0;
+        scanf("%d", &dict_file);
+        
+        dict_size = read_dict(dict_file);
+        srand(time(NULL));
+
+        printf("\nQuick play (y/n) ?");
+        do
+        {
+            scanf("%4s",yn);
+
+        } while((yn[0]!='y')&&(yn[0]!='Y')&&(yn[0]!='n')&&(yn[0]!='N'));
+        
+        if((yn[0]=='y')||(yn[0]=='Y'))
+        {
+            insert_secret_words = 0;
+            number_of_players = 1;
+            number_of_challenges = 1;
+        }
+        else
+        {
+ 
+            printf("\nHow many players?");
+            scanf("%d", &number_of_players);
+
+            printf("\nDo you want to insert the secret words (y/n) ?");
+            do
+            {
+                scanf("%4s",yn);
+
+            } while((yn[0]!='y')&&(yn[0]!='Y')&&(yn[0]!='n')&&(yn[0]!='N'));
+            
+            if((yn[0]!='y')&&(yn[0]!='Y'))
+            {
+                insert_secret_words = 0;
+            }
+            else
+            {
+                insert_secret_words = 1;
+            }
+
+
+            printf("\nHow many challenges per game?");
+            scanf("%d", &number_of_challenges);
+        }
+        for(player=1;player<=number_of_players;++player)
+        {
+            
+            total_score[player] = 0;
+        }
+        
         for(i=1;i<=number_of_challenges;++i)
         {
             
@@ -392,28 +410,28 @@ int main(int argc, char **argv)
 
             clrscr();
 
-            printf("\n-----------------------------------------------------------------------------\n");
-            printf("Challenge no. %d\n", i);
-            printf(  "-----------------------------------------------------------------------------\n");
-
-
-    
-
-            challenge();
-            printf("SCORE: %5d", score);
-            if(score==1000)
+            for(player=1;player<=number_of_players;++player)
             {
-                printf(" MAX SCORE !");
-            }
-            printf("\n");
-            total_score+=score;
-            printf("TOTAL SCORE: %5d\n", total_score);
+                printf("\n-----------------------------------------------------------------------------\n");
+                printf("Player no. %d       Challenge no. %d\n", player, i);
+                printf(  "-----------------------------------------------------------------------------\n");
 
-            getchar();
-            sleep(2);
-            getchar();
+                challenge(secret, player);
+                printf("SCORE: %5d", score[player]);
+                if(score[player]==1000)
+                {
+                    printf(" MAX SCORE !");
+                }
+                printf("\n");
+                total_score[player]+=score[player];
+                printf("TOTAL SCORE: %5d\n", total_score[player]);
+
+                getchar();
+                sleep(2);
+                getchar();
+            }
         }
-        
+         
         do
         {
             getchar();
@@ -427,10 +445,10 @@ int main(int argc, char **argv)
         {
             break;
         }
-    }
-    
-    return EXIT_SUCCESS;
+    }        
 
+    return EXIT_SUCCESS;
 }
+
 
 
