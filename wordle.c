@@ -12,11 +12,14 @@
 #define FRA_DICT_FILE "5_letter_words_FRA.txt"
 #define ITA_DICT_FILE "5_letter_words_ITA.txt"
 #define ROM_DICT_FILE "5_letter_words_ROM.txt"
+#define SPA_DICT_FILE "5_letter_words_SPA.txt"
+
 
 #define ENG 1
 #define FRA 2
 #define ITA 3
 #define ROM 4
+#define SPA 5
 
 #define NOT_TRIED 0
 #define TRIED_AND_NOT_FOUND 1
@@ -75,6 +78,10 @@ unsigned short read_dict(unsigned char dict_file)
         
         case ROM:
             fd = fopen(ROM_DICT_FILE, "r");
+        break;
+        
+        case SPA:
+            fd = fopen(SPA_DICT_FILE, "r");
         break;
         
         default:
@@ -274,7 +281,7 @@ void challenge(char *secret, unsigned char player)
 
     reset_vect(letter_found);
     
-    printf("\n\n--------------------------------\n");
+    printf("\n--------------------------------\n");
     
     #if defined(DEBUG)
         printf("secret: %s\n", secret);
@@ -390,7 +397,7 @@ void challenge(char *secret, unsigned char player)
 }
 
 
-void select_secret(unsigned char insert_secret_words, char *secret)
+void select_secret(unsigned short insert_secret_words, char *secret)
 {
     if(!insert_secret_words)
     {
@@ -407,18 +414,22 @@ void select_secret(unsigned char insert_secret_words, char *secret)
             printf("Insert secret word\n");
             scanf("%5s", secret);
         } while(!in_dict(secret));
+        clrscr();
     }
+    
+    // printf("%s\n", secret);
 }
+
 
 int main(int argc, char **argv)
 {
     unsigned char i;
-    unsigned short number_of_challenges;
-    unsigned char number_of_players;
+    unsigned int number_of_challenges;
+    unsigned short number_of_players;
     unsigned char player;
-    unsigned char insert_secret_words;
-    unsigned char same_secret;
-    char secret[6];    
+    unsigned short insert_secret_words;
+    unsigned short same_secret;
+    char secret[9];    
     char yn[5];
 
     while(1)
@@ -429,7 +440,7 @@ int main(int argc, char **argv)
         printf("        ANSI C version by Fabrizio Caruso\n");
 
         instructions();
-        printf("\nChoose language (1 = English, 2 = French, 3 = Italian, 4 = Romanian) ");
+        printf("\nChoose language (1 = English, 2 = French, 3 = Italian, 4 = Romanian, 5 = Spanish) ");
         
         scanf("%d", &dict_file);
         
@@ -470,36 +481,44 @@ int main(int argc, char **argv)
 
                 } while((yn[0]!='y')&&(yn[0]!='Y')&&(yn[0]!='n')&&(yn[0]!='N'));
                 
-                if((yn[0]=='y')&&(yn[0]=='Y'))
+                if((yn[0]=='y')||(yn[0]=='Y'))
                 {
                     same_secret = 1;
+                    printf("ONLY ONE player at a time should look at the screen.\n");
                 }
                 else
                 {
                     same_secret = 0;
+                    printf("Each player gets different secret words.\n");
                 } 
             }
 
-            printf("\nDo you want a player to insert the secret words (y/n) ?");
+            printf("\nDo you want a player to choose the secret words (y/n) ?");
             do
             {
                 scanf("%4s",yn);
 
             } while((yn[0]!='y')&&(yn[0]!='Y')&&(yn[0]!='n')&&(yn[0]!='N'));
             
-            if((yn[0]!='y')&&(yn[0]!='Y'))
+            
+            if((yn[0]=='y')||(yn[0]=='Y'))
             {
-                insert_secret_words = 0;
+                insert_secret_words = 1;
+                printf("A player or other person will have to CHOOSE the secret words.\n");
             }
             else
             {
-                insert_secret_words = 1;
+                insert_secret_words = 0;
+                printf("Secret words will be RANDOMLY chosen by the computer.\n");
             }
-
+            
 
             printf("\nHow many words per game?");
-            scanf("%d", &number_of_challenges);
+            scanf("%u", &number_of_challenges);
         }
+        
+        getchar();
+        
         for(player=1;player<=number_of_players;++player)
         {
             
@@ -511,22 +530,28 @@ int main(int argc, char **argv)
             
             if(same_secret)
             {
-                select_secret(insert_secret_words,secret);
+                select_secret(insert_secret_words, secret);
             }
 
             clrscr();
 
             for(player=1;player<=number_of_players;++player)
             {
+                clrscr();
+
+                if(!same_secret)
+                {
+                    select_secret(insert_secret_words, secret);
+                }
+                
+                clrscr();
                 printf("\n-----------------------------------------------------------------------------\n");
                 printf("Player no. %d       Challenge no. %d\n", player, i);
                 printf(  "-----------------------------------------------------------------------------\n");
 
-
-                if(!same_secret)
-                {
-                    select_secret(insert_secret_words,secret);
-                }
+                printf("\n");
+                printf("Press ENTER to start\n");
+                getchar();
 
                 challenge(secret, player);
                 printf("SCORE: %5d", score[player]);
