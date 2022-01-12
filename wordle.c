@@ -43,7 +43,6 @@ char dict[MAX_DICT_SIZE][6];
 
 char attempt[6];
 
-unsigned short secret_index;
 
 unsigned char dict_file;
 
@@ -52,8 +51,6 @@ unsigned short dict_size;
 unsigned short freq[VECT_SIZE];
 unsigned short hint[VECT_SIZE];
 unsigned short letter_found[VECT_SIZE]; 
-
-unsigned char insert_secret_words;
 
 unsigned short score[MAX_PLAYERS];
 
@@ -393,12 +390,34 @@ void challenge(char *secret, unsigned char player)
 }
 
 
+void select_secret(unsigned char insert_secret_words, char *secret)
+{
+    if(!insert_secret_words)
+    {
+        unsigned short secret_index;
+
+        secret_index = rand()%dict_size;
+        strcpy(secret,dict[secret_index]);
+    }
+    else
+    {
+        do
+        {
+            clrscr();
+            printf("Insert secret word\n");
+            scanf("%5s", secret);
+        } while(!in_dict(secret));
+    }
+}
+
 int main(int argc, char **argv)
 {
     unsigned char i;
     unsigned short number_of_challenges;
     unsigned char number_of_players;
     unsigned char player;
+    unsigned char insert_secret_words;
+    unsigned char same_secret;
     char secret[6];    
     char yn[5];
 
@@ -429,14 +448,39 @@ int main(int argc, char **argv)
             insert_secret_words = 0;
             number_of_players = 1;
             number_of_challenges = 1;
+            same_secret = 0;
         }
         else
         {
  
             printf("\nHow many players?");
             scanf("%d", &number_of_players);
+            
+            if(number_of_players==1)
+            {
+                same_secret = 0;
+            }
+            else
+            {
+                printf("\nDo you want the same secret words for all players (y/n) ?");
 
-            printf("\nDo you want to insert the secret words (y/n) ?");
+                do
+                {
+                    scanf("%4s",yn);
+
+                } while((yn[0]!='y')&&(yn[0]!='Y')&&(yn[0]!='n')&&(yn[0]!='N'));
+                
+                if((yn[0]=='y')&&(yn[0]=='Y'))
+                {
+                    same_secret = 1;
+                }
+                else
+                {
+                    same_secret = 0;
+                } 
+            }
+
+            printf("\nDo you want a player to insert the secret words (y/n) ?");
             do
             {
                 scanf("%4s",yn);
@@ -465,20 +509,9 @@ int main(int argc, char **argv)
         for(i=1;i<=number_of_challenges;++i)
         {
             
-            if(!insert_secret_words)
+            if(same_secret)
             {
-            
-                secret_index = rand()%dict_size;
-                strcpy(secret,dict[secret_index]);
-            }
-            else
-            {
-                do
-                {
-                    clrscr();
-                    printf("Insert secret word\n");
-                    scanf("%5s", secret);
-                } while(!in_dict(secret));
+                select_secret(insert_secret_words,secret);
             }
 
             clrscr();
@@ -488,6 +521,12 @@ int main(int argc, char **argv)
                 printf("\n-----------------------------------------------------------------------------\n");
                 printf("Player no. %d       Challenge no. %d\n", player, i);
                 printf(  "-----------------------------------------------------------------------------\n");
+
+
+                if(!same_secret)
+                {
+                    select_secret(insert_secret_words,secret);
+                }
 
                 challenge(secret, player);
                 printf("SCORE: %5d", score[player]);
