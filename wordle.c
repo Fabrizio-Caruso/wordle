@@ -18,9 +18,16 @@
 #define ITA 3
 #define ROM 4
 
+#define NOT_TRIED 0
+#define TRIED_AND_NOT_FOUND 1
+#define FOUND_IN_WRONG_PLACE 2
+#define FOUND_IN_EXACT_PLACE 3
+
 #define MAX_ATTEMPTS 6
 
 #define MAX_PLAYERS 9
+
+#define VECT_SIZE 400
 
 #ifdef _WIN32
 #define clrscr() system("cls");
@@ -42,8 +49,9 @@ unsigned char dict_file;
 
 unsigned short dict_size;
 
-unsigned short freq[400];
-unsigned short hint[400];
+unsigned short freq[VECT_SIZE];
+unsigned short hint[VECT_SIZE];
+unsigned short letter_found[VECT_SIZE]; 
 
 unsigned char insert_secret_words;
 
@@ -102,7 +110,7 @@ unsigned short read_dict(unsigned char dict_file)
     return count;
 }
 
-void reset_freq(unsigned short *vect)
+void reset_vect(unsigned short *vect)
 {
     unsigned char i;
     
@@ -116,7 +124,7 @@ void compute_secret_freq(char *secret)
 {
     unsigned char i;
     
-    reset_freq(freq);
+    reset_vect(freq);
     
     for(i=0;i<5;++i)
     {
@@ -201,6 +209,57 @@ unsigned short compute_score(unsigned char word_found, unsigned char attempt_num
 }
 
 
+void show_found_letters(void)
+{
+    unsigned char ch;
+    
+    for(ch='a';ch<='z';++ch)
+    {
+        if(letter_found[ch])
+        {
+            if(letter_found[ch]==FOUND_IN_EXACT_PLACE)
+            {
+                printf("%c ",ch-'a'+'A');
+            }
+            else
+            {
+                printf("%c ",ch);
+            }
+        }
+        else
+        {
+                printf("%c ",ch);  
+        }
+    }
+    printf("\n             ");
+    for(ch='a';ch<='z';++ch)
+    {
+        if(letter_found[ch])
+        {
+            if(letter_found[ch]==FOUND_IN_WRONG_PLACE)
+            {
+                printf("* ");
+            }
+            else if(letter_found[ch]==TRIED_AND_NOT_FOUND)
+            {
+                printf("- ");
+            }
+            else
+            {
+                printf("  ");
+            }
+        }
+        else
+        {
+            printf("? ");
+        }
+    }
+    printf("\n");
+    // printf("------");
+    // printf("\n");
+}
+
+
 void challenge(char *secret, unsigned char player)
 {  
     unsigned char attempt_number;
@@ -212,8 +271,11 @@ void challenge(char *secret, unsigned char player)
     
     clock_t start_t;
     clock_t elapsed_time;
+    
 
     compute_secret_freq(secret);
+
+    reset_vect(letter_found);
     
     printf("\n\n--------------------------------\n");
     
@@ -228,7 +290,9 @@ void challenge(char *secret, unsigned char player)
     start_t = clock() / (CLOCKS_PER_SEC);
     while(attempt_number<=MAX_ATTEMPTS)
     {
-        printf("\nTry no. %d\n", attempt_number);
+        printf("\n-------------");
+        printf("\nTry no. %d  : ", attempt_number);
+        show_found_letters();
         scanf("%5s", attempt);
         
         if(!strcmp("x",attempt))
@@ -243,7 +307,7 @@ void challenge(char *secret, unsigned char player)
         else
         {
             
-            reset_freq(hint);
+            reset_vect(hint);
             
             ++attempt_number;
             if(!strcmp(secret,attempt))
@@ -270,6 +334,7 @@ void challenge(char *secret, unsigned char player)
                     if(secret[i]==attempt[i])
                     {
                         printf("%c",secret[i]);
+                        letter_found[secret[i]] = FOUND_IN_EXACT_PLACE;
                     }
                     else
                     {
@@ -281,6 +346,10 @@ void challenge(char *secret, unsigned char player)
                                ) 
                             {
                                 char_found = 1;
+                                if(letter_found[attempt[i]]!=FOUND_IN_EXACT_PLACE)
+                                {
+                                    letter_found[attempt[i]] = FOUND_IN_WRONG_PLACE;
+                                }
                                 break;
                             }
                         }
@@ -292,6 +361,10 @@ void challenge(char *secret, unsigned char player)
                         else
                         {
                             printf("-");
+                        }
+                        if(!letter_found[attempt[i]])
+                        {
+                            letter_found[attempt[i]]=TRIED_AND_NOT_FOUND;
                         }
                     }
                 }
@@ -380,7 +453,7 @@ int main(int argc, char **argv)
             }
 
 
-            printf("\nHow many challenges per game?");
+            printf("\nHow many words per game?");
             scanf("%d", &number_of_challenges);
         }
         for(player=1;player<=number_of_players;++player)
