@@ -61,6 +61,8 @@ unsigned short match_score[MAX_PLAYERS];
 
 unsigned short score[MAX_PLAYERS];
 
+unsigned char wins[MAX_PLAYERS];
+
 
 unsigned short read_dict(unsigned char dict_file)
 {
@@ -397,6 +399,7 @@ void challenge(char *secret, unsigned char player)
     if(word_found)
     {
         printf("YOU WIN!\n");
+        ++wins[player];
     }
     else
     {
@@ -537,6 +540,7 @@ int main(int argc, char **argv)
         {
             
             score[player] = 0;
+            wins[0] = 0;
         }
         
         for(i=1;i<=number_of_challenges;++i)
@@ -592,7 +596,7 @@ int main(int argc, char **argv)
             
         for(player=1;player<=number_of_players;++player)
         {
-            printf("PLAYER %u --- SCORE %u\n\n", player, score[player]);
+            printf("PLAYER %u --- WINS %u/%u --- SCORE %06u\n\n", player, wins[player], number_of_challenges, score[player]);
         }
         printf("----------------------------------------\n");
 
