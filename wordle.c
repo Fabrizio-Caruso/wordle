@@ -6,6 +6,8 @@
 
 #include <unistd.h>
 
+#include <ctype.h>
+
 #define MAX_DICT_SIZE 19999
 
 #define ENG_DICT_FILE "5_letter_words_ENG.txt"
@@ -55,9 +57,9 @@ unsigned short freq[VECT_SIZE];
 unsigned short hint[VECT_SIZE];
 unsigned short letter_found[VECT_SIZE]; 
 
-unsigned short score[MAX_PLAYERS];
+unsigned short match_score[MAX_PLAYERS];
 
-unsigned short total_score[MAX_PLAYERS];
+unsigned short score[MAX_PLAYERS];
 
 
 unsigned short read_dict(unsigned char dict_file)
@@ -264,6 +266,16 @@ void show_found_letters(void)
 }
 
 
+void make_lower(char * str)
+{
+    unsigned char i;
+    
+    for(int i = 0; str[i]; i++)
+    {
+        str[i] = tolower(str[i]);
+    }
+}
+
 void challenge(char *secret, unsigned char player)
 {  
     unsigned char attempt_number;
@@ -298,6 +310,8 @@ void challenge(char *secret, unsigned char player)
         printf("\nTry no. %d  : ", attempt_number);
         show_found_letters();
         scanf("%5s", attempt);
+        
+        make_lower(attempt);
         
         if(!strcmp("x",attempt))
         {
@@ -393,7 +407,7 @@ void challenge(char *secret, unsigned char player)
     elapsed_time = clock() / (CLOCKS_PER_SEC) - start_t;
     printf("Attempts: %d\n", attempt_number);
     printf("Time: %d\n", elapsed_time);
-    score[player] = compute_score(word_found, attempt_number, exact_matches, elapsed_time);   
+    match_score[player] = compute_score(word_found, attempt_number, exact_matches, elapsed_time);   
 }
 
 
@@ -440,7 +454,7 @@ int main(int argc, char **argv)
         printf("        ANSI C version by Fabrizio Caruso\n");
 
         instructions();
-        printf("\nChoose language (1 = English, 2 = French, 3 = Italian, 4 = Romanian, 5 = Spanish) ");
+        printf("\nChoose language\n1 = English, 2 = French, 3 = Italian, 4 = Romanian, 5 = Spanish :");
         
         scanf("%d", &dict_file);
         
@@ -522,7 +536,7 @@ int main(int argc, char **argv)
         for(player=1;player<=number_of_players;++player)
         {
             
-            total_score[player] = 0;
+            score[player] = 0;
         }
         
         for(i=1;i<=number_of_challenges;++i)
@@ -554,21 +568,36 @@ int main(int argc, char **argv)
                 getchar();
 
                 challenge(secret, player);
-                printf("SCORE: %5d", score[player]);
-                if(score[player]==1000)
+                printf("POINTS OBTAINED: %5d", match_score[player]);
+                if(match_score[player]==1000)
                 {
-                    printf(" MAX SCORE !");
+                    printf(" MAX SCORE!");
                 }
                 printf("\n");
-                total_score[player]+=score[player];
-                printf("TOTAL SCORE: %5d\n", total_score[player]);
+                score[player]+=match_score[player];
+                printf("SCORE: %5d\n", score[player]);
 
                 getchar();
                 sleep(2);
                 getchar();
             }
         }
-         
+        
+        clrscr();
+        printf("\n----------------------------------------");
+        
+        printf("\nSCORE BOARD\n");
+        printf("\n----------------------------------------\n");
+
+            
+        for(player=1;player<=number_of_players;++player)
+        {
+            printf("PLAYER %u --- SCORE %u\n\n", player, score[player]);
+        }
+        printf("----------------------------------------\n");
+
+        sleep(1);
+        
         do
         {
             getchar();
