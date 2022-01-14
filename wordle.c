@@ -8,20 +8,28 @@
 
 #include <ctype.h>
 
-#define MAX_DICT_SIZE 19999
+#define MAX_DICT_SIZE 50000
 
-#define ENG_DICT_FILE "5_letter_words_ENG.txt"
+#define ENG_3_DICT_FILE "3_letter_words_ENG.txt"
+#define ENG_4_DICT_FILE "4_letter_words_ENG.txt"
+#define ENG_5_DICT_FILE "5_letter_words_ENG.txt"
+#define ENG_6_DICT_FILE "6_letter_words_ENG.txt"
+#define ENG_7_DICT_FILE "7_letter_words_ENG.txt"
+
+#define ENG_DICT_FILE ENG_5_DICT_FILE
+
+
 #define FRA_DICT_FILE "5_letter_words_FRA.txt"
 #define ITA_DICT_FILE "5_letter_words_ITA.txt"
 #define ROM_DICT_FILE "5_letter_words_ROM.txt"
-#define SPA_DICT_FILE "5_letter_words_SPA.txt"
+#define ESP_DICT_FILE "5_letter_words_ESP.txt"
 
 
 #define ENG 1
 #define FRA 2
 #define ITA 3
 #define ROM 4
-#define SPA 5
+#define ESP 5
 
 #define NOT_TRIED 0
 #define TRIED_AND_NOT_FOUND 1
@@ -44,9 +52,9 @@
 
 // #define DEBUG
 
-char dict[MAX_DICT_SIZE][6];
+char dict[MAX_DICT_SIZE][16];
 
-char attempt[6];
+char attempt[16];
 
 
 unsigned char dict_file;
@@ -63,6 +71,9 @@ unsigned short score[MAX_PLAYERS];
 
 unsigned char wins[MAX_PLAYERS];
 
+unsigned short total_time[MAX_PLAYERS];
+
+unsigned short word_size;
 
 unsigned short read_dict(unsigned char dict_file)
 {
@@ -84,8 +95,32 @@ unsigned short read_dict(unsigned char dict_file)
             fd = fopen(ROM_DICT_FILE, "r");
         break;
         
-        case SPA:
-            fd = fopen(SPA_DICT_FILE, "r");
+        case ESP:
+            fd = fopen(ESP_DICT_FILE, "r");
+        break;
+        
+        case ENG:
+            switch(word_size)
+            {
+                case 3:
+                    fd = fopen(ENG_3_DICT_FILE, "r");
+                break;
+                case 4:
+                    fd = fopen(ENG_4_DICT_FILE, "r");
+                break;
+                case 5:
+                    fd = fopen(ENG_5_DICT_FILE, "r");
+                break;
+                case 6:
+                    fd = fopen(ENG_6_DICT_FILE, "r");
+                break;
+                case 7:
+                    fd = fopen(ENG_7_DICT_FILE, "r");
+                break;
+                // case 8:
+                    // fd = fopen(ENG_8_DICT_FILE, "r");
+                // break;
+            }
         break;
         
         default:
@@ -96,7 +131,24 @@ unsigned short read_dict(unsigned char dict_file)
     count=0;
     while(!feof(fd))
     {
-        fscanf(fd, "%5s",&dict[count]);
+        switch(word_size)
+        {
+            case 3:
+                fscanf(fd, "%3s",&dict[count]);
+            break;
+            case 4:
+                fscanf(fd, "%4s",&dict[count]);
+            break;
+            case 5:
+                fscanf(fd, "%5s",&dict[count]);
+            break;
+            case 6:
+                fscanf(fd, "%6s",&dict[count]);
+            break;
+            case 7:
+                fscanf(fd, "%7s",&dict[count]);
+            break;
+        }
         ++count;
     }
     
@@ -134,7 +186,7 @@ void compute_secret_freq(char *secret)
     
     reset_vect(freq);
     
-    for(i=0;i<5;++i)
+    for(i=0;i<word_size;++i)
     {
         ++freq[secret[i]];
     }
@@ -147,7 +199,7 @@ unsigned char in_dict(const char *word)
     
     for(i=0;i<dict_size;++i)
     {
-        // printf("comparing with %s\n", dict[i]);
+        // printf("comparing %s with %s\n", word, dict[i]);
         if(!strcmp(word,dict[i]))
         {
             return 1;
@@ -163,7 +215,7 @@ void instructions(void)
     printf("                     INSTRUCTIONS\n");
     printf("-----------------------------------------------------------------------------\n");
     
-    printf("Guess a 5-letter secret word in max 6 attempts\n");
+    printf("Guess a secret word in max 6 attempts\n");
     printf("'-' means letter nowhere in the secret word\n");
     printf("'*' one occurence of this letter is elsewhere for each '*' on the same letter\n");
     printf("A displayed letter means that it is correct in the displayed place\n");
@@ -175,24 +227,28 @@ void instructions(void)
 
 }
 
+
+#define MAX_SCORE_FOR_PARTIAL_MATCH 300
+
+#define BASE_SCORE 900
+
 unsigned short compute_score(unsigned char word_found, unsigned char attempt_number, unsigned char exact_matches, clock_t elapsed_time)
 {
-    unsigned short base_score;
     
     unsigned short score = 0;
     
     unsigned short bonus = 0;
     
     unsigned short time_penalty = 0;
-    
+        
     if(!word_found)
     {
-        base_score = exact_matches * 50;
+        unsigned short points_for_single_letter = MAX_SCORE_FOR_PARTIAL_MATCH/(word_size-1);
+        
+        return exact_matches * points_for_single_letter;
     }
     else
-    {
-        base_score = 900;
-        
+    {    
         if (attempt_number<6)
         {
             bonus = 100;
@@ -206,14 +262,14 @@ unsigned short compute_score(unsigned char word_found, unsigned char attempt_num
         {
             time_penalty = elapsed_time - 60;
         }
+        
+        return BASE_SCORE + bonus - time_penalty;
     }
     
     // printf("exact_matches: %d\n", exact_matches);
-    // printf("base_score   : %5d\n", base_score);
     // printf("bonus        : %5d\n", bonus);
     // printf("time_penalty : %5d\n", time_penalty);
-    
-    return base_score + bonus - time_penalty;
+
 }
 
 
@@ -311,7 +367,9 @@ void challenge(char *secret, unsigned char player)
         printf("\n-------------");
         printf("\nTry no. %d  : ", attempt_number);
         show_found_letters();
-        scanf("%5s", attempt);
+        
+        
+        scanf("%s", attempt);
         
         make_lower(attempt);
         
@@ -339,7 +397,7 @@ void challenge(char *secret, unsigned char player)
             {
                 // First compute frequencies of exact matches
                 exact_matches = 0;
-                for(i=0;i<5;++i)
+                for(i=0;i<word_size;++i)
                 {
                     if(secret[i]==attempt[i])
                     {
@@ -349,7 +407,7 @@ void challenge(char *secret, unsigned char player)
                 }           
                 
                 // Compute matches and partial matches
-                for(i=0;i<5;++i)
+                for(i=0;i<word_size;++i)
                 {
                     if(secret[i]==attempt[i])
                     {
@@ -358,7 +416,7 @@ void challenge(char *secret, unsigned char player)
                     }
                     else
                     {
-                        for(j=0;j<5;++j)
+                        for(j=0;j<word_size;++j)
                         {
                             char_found = 0;
                             if((secret[j]==attempt[i]) && 
@@ -408,6 +466,7 @@ void challenge(char *secret, unsigned char player)
     }
     
     elapsed_time = clock() / (CLOCKS_PER_SEC) - start_t;
+    total_time[player]+=elapsed_time;
     printf("Attempts: %d\n", attempt_number);
     printf("Time: %d\n", elapsed_time);
     match_score[player] = compute_score(word_found, attempt_number, exact_matches, elapsed_time);   
@@ -460,6 +519,18 @@ int main(int argc, char **argv)
         printf("\nChoose language\n1 = English, 2 = French, 3 = Italian, 4 = Romanian, 5 = Spanish :");
         
         scanf("%d", &dict_file);
+        
+        if(dict_file==ENG)
+        {
+            printf("\nChoose word size (3-7) :");
+            scanf("%d", &word_size);
+        }
+        else
+        {
+            word_size = 5;
+        }
+        
+        printf("\nSecret word size will have %d letters\n", word_size);
         
         dict_size = read_dict(dict_file);
         srand(time(NULL));
@@ -540,7 +611,8 @@ int main(int argc, char **argv)
         {
             
             score[player] = 0;
-            wins[0] = 0;
+            wins[player] = 0;
+            total_time[player] = 0;
         }
         
         for(i=1;i<=number_of_challenges;++i)
@@ -588,17 +660,17 @@ int main(int argc, char **argv)
         }
         
         clrscr();
-        printf("\n----------------------------------------");
+        printf("\n----------------------------------------------------");
         
         printf("\nSCORE BOARD\n");
-        printf("\n----------------------------------------\n");
+        printf("\n----------------------------------------------------\n");
 
             
         for(player=1;player<=number_of_players;++player)
         {
-            printf("PLAYER %u --- WINS %u/%u --- SCORE %06u\n\n", player, wins[player], number_of_challenges, score[player]);
+            printf("PLAYER %u --- WINS %u/%u --- SCORE %06u --- TIME %04u\n\n", player, wins[player], number_of_challenges, score[player], total_time[player]);
         }
-        printf("----------------------------------------\n");
+        printf("----------------------------------------------------\n");
 
         sleep(1);
         

@@ -1,5 +1,6 @@
 #include <SFML/Audio.h>
 #include <SFML/Graphics.h>
+#include <stdlib.h>
 
 int main()
 {
