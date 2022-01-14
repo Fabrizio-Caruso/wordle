@@ -15,6 +15,8 @@
 #define ENG_5_DICT_FILE "5_letter_words_ENG.txt"
 #define ENG_6_DICT_FILE "6_letter_words_ENG.txt"
 #define ENG_7_DICT_FILE "7_letter_words_ENG.txt"
+#define ENG_8_DICT_FILE "8_letter_words_ENG.txt"
+
 
 #define ENG_DICT_FILE ENG_5_DICT_FILE
 
@@ -36,6 +38,9 @@
 #define FOUND_IN_WRONG_PLACE 2
 #define FOUND_IN_EXACT_PLACE 3
 
+#define MIN_WORD_LENGTH 3
+#define MAX_WORD_LENGTH 8
+
 #define MAX_ATTEMPTS 6
 
 #define MAX_PLAYERS 9
@@ -52,9 +57,11 @@
 
 // #define DEBUG
 
-char dict[MAX_DICT_SIZE][16];
+#define MAX_WORD_SIZE 16
 
-char attempt[16];
+char dict[MAX_DICT_SIZE][MAX_WORD_SIZE];
+
+char attempt[MAX_WORD_SIZE];
 
 
 unsigned char dict_file;
@@ -117,9 +124,9 @@ unsigned short read_dict(unsigned char dict_file)
                 case 7:
                     fd = fopen(ENG_7_DICT_FILE, "r");
                 break;
-                // case 8:
-                    // fd = fopen(ENG_8_DICT_FILE, "r");
-                // break;
+                case 8:
+                    fd = fopen(ENG_8_DICT_FILE, "r");
+                break;
             }
         break;
         
@@ -147,6 +154,9 @@ unsigned short read_dict(unsigned char dict_file)
             break;
             case 7:
                 fscanf(fd, "%7s",&dict[count]);
+            break;
+            case 8:
+                fscanf(fd, "%8s",&dict[count]);
             break;
         }
         ++count;
@@ -522,15 +532,20 @@ int main(int argc, char **argv)
         
         if(dict_file==ENG)
         {
-            printf("\nChoose word size (3-7) :");
+            printf("\nChoose word size (3-8) :");
             scanf("%d", &word_size);
+            
+            if((word_size<MIN_WORD_LENGTH)||(word_size>MAX_WORD_LENGTH))
+            {
+                word_size = 5;
+            }
         }
         else
         {
             word_size = 5;
         }
         
-        printf("\nSecret word size will have %d letters\n", word_size);
+        printf("\nSecret word will have %d letters\n", word_size);
         
         dict_size = read_dict(dict_file);
         srand(time(NULL));
@@ -660,17 +675,17 @@ int main(int argc, char **argv)
         }
         
         clrscr();
-        printf("\n----------------------------------------------------");
+        printf("\n----------------------------------------------------------");
         
         printf("\nSCORE BOARD\n");
-        printf("\n----------------------------------------------------\n");
+        printf("\n----------------------------------------------------------\n");
 
             
         for(player=1;player<=number_of_players;++player)
         {
-            printf("PLAYER %u --- WINS %u/%u --- SCORE %06u --- TIME %04u\n\n", player, wins[player], number_of_challenges, score[player], total_time[player]);
+            printf("PLAYER %u  |  GUESSED %02u/%02u  |  SCORE %06u  |  SECS %04u\n", player, wins[player], number_of_challenges, score[player], total_time[player]);
+            printf("----------------------------------------------------------\n");
         }
-        printf("----------------------------------------------------\n");
 
         sleep(1);
         
