@@ -545,7 +545,7 @@ int main(int argc, char **argv)
         printf("        ANSI C version by Fabrizio Caruso\n");
 
         instructions();
-        printf("\nChoose language\n1 = English, 2 = French, 3 = Italian, 4 = Romanian, 5 = Spanish, 6 = German, 7 = Portuguese :");
+        printf("\nChoose language\n1 = English\n2 = French\n3 = Italian\n4 = Romanian\n5 = Spanish\n6 = German\n7 = Portuguese\n:");
         
         scanf("%d", &dict_file);
         
