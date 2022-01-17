@@ -8,41 +8,7 @@
 
 #include <ctype.h>
 
-#define MAX_DICT_SIZE 50000
-
-#define DICTIONARY_DIR "dictionaries/"
-
-#define ENG_DIR "ENG/"
-#define FRA_DIR "FRA/" 
-#define ITA_DIR "ITA/"
-#define ROM_DIR "ROM/"
-#define ESP_DIR "ESP/"
-#define DEU_DIR "DEU/"
-#define POR_DIR "POR/"
-
-#define ENG_3_DICT_FILE DICTIONARY_DIR ENG_DIR "3_letter_words_ENG.txt"
-#define ENG_4_DICT_FILE DICTIONARY_DIR ENG_DIR "4_letter_words_ENG.txt"
-#define ENG_5_DICT_FILE DICTIONARY_DIR ENG_DIR "5_letter_words_ENG.txt"
-#define ENG_6_DICT_FILE DICTIONARY_DIR ENG_DIR "6_letter_words_ENG.txt"
-#define ENG_7_DICT_FILE DICTIONARY_DIR ENG_DIR "7_letter_words_ENG.txt"
-#define ENG_8_DICT_FILE DICTIONARY_DIR ENG_DIR "8_letter_words_ENG.txt"
-
-#define ENG_DICT_FILE ENG_5_DICT_FILE
-
-#define FRA_DICT_FILE DICTIONARY_DIR "FRA/" "5_letter_words_FRA.txt"
-#define ITA_DICT_FILE DICTIONARY_DIR "ITA/" "5_letter_words_ITA.txt"
-#define ROM_DICT_FILE DICTIONARY_DIR "ROM/" "5_letter_words_ROM.txt"
-#define ESP_DICT_FILE DICTIONARY_DIR "ESP/" "5_letter_words_ESP.txt"
-#define DEU_DICT_FILE DICTIONARY_DIR "DEU/" "5_letter_words_DEU.txt"
-#define POR_DICT_FILE DICTIONARY_DIR "POR/" "5_letter_words_POR.txt"
-
-#define ENG 1
-#define FRA 2
-#define ITA 3
-#define ROM 4
-#define ESP 5
-#define DEU 6
-#define POR 7
+#include "common.h"
 
 #define NOT_TRIED 0
 #define TRIED_AND_NOT_FOUND 1
@@ -56,8 +22,6 @@
 
 #define MAX_PLAYERS 9
 
-#define VECT_SIZE 400
-
 #ifdef _WIN32
 #define clrscr() system("cls");
 #else
@@ -66,14 +30,9 @@
 #endif
 
 
-// #define DEBUG
-
-#define MAX_WORD_SIZE 16
-
 char dict[MAX_DICT_SIZE][MAX_WORD_SIZE];
 
 char attempt[MAX_WORD_SIZE];
-
 
 unsigned char dict_file;
 
@@ -93,149 +52,7 @@ unsigned short total_time[MAX_PLAYERS];
 
 unsigned short word_size;
 
-unsigned short read_dict(unsigned char dict_file)
-{
-    FILE *fd;
-    int count;
-    int j;
 
-    switch(dict_file)
-    {
-        case FRA:
-            fd = fopen(FRA_DICT_FILE, "r");
-        break;
-        
-        case ITA:
-            fd = fopen(ITA_DICT_FILE, "r");
-        break;
-        
-        case ROM:
-            fd = fopen(ROM_DICT_FILE, "r");
-        break;
-        
-        case ESP:
-            fd = fopen(ESP_DICT_FILE, "r");
-        break;
-        
-        case DEU:
-            fd = fopen(DEU_DICT_FILE, "r");
-        break;
-        
-        case POR:
-            fd = fopen(POR_DICT_FILE, "r");
-        break;
-        
-        case ENG:
-            switch(word_size)
-            {
-                case 3:
-                    fd = fopen(ENG_3_DICT_FILE, "r");
-                break;
-                case 4:
-                    fd = fopen(ENG_4_DICT_FILE, "r");
-                break;
-                case 5:
-                    fd = fopen(ENG_5_DICT_FILE, "r");
-                break;
-                case 6:
-                    fd = fopen(ENG_6_DICT_FILE, "r");
-                break;
-                case 7:
-                    fd = fopen(ENG_7_DICT_FILE, "r");
-                break;
-                case 8:
-                    fd = fopen(ENG_8_DICT_FILE, "r");
-                break;
-            }
-        break;
-        
-        default:
-            fd = fopen(ENG_DICT_FILE, "r");
-        break;
-    }
-
-    count=0;
-    while(!feof(fd))
-    {
-        switch(word_size)
-        {
-            case 3:
-                fscanf(fd, "%3s",&dict[count]);
-            break;
-            case 4:
-                fscanf(fd, "%4s",&dict[count]);
-            break;
-            case 5:
-                fscanf(fd, "%5s",&dict[count]);
-            break;
-            case 6:
-                fscanf(fd, "%6s",&dict[count]);
-            break;
-            case 7:
-                fscanf(fd, "%7s",&dict[count]);
-            break;
-            case 8:
-                fscanf(fd, "%8s",&dict[count]);
-            break;
-        }
-        ++count;
-    }
-    
-    printf("\n");
-
-    printf("Number of words in dictionary: %d\n", count);
-    
-    #if defined(DEBUG)
-        for(j=0;j<count;++j)
-        {
-            printf("%s ", dict[j]);
-        }
-        printf("\n");
-    #endif
-
-
-    fclose(fd);
-    
-    return count;
-}
-
-void reset_vect(unsigned short *vect)
-{
-    unsigned char i;
-    
-    for(i='a';i<'z';++i)
-    {
-        vect[i] = 0;
-    }
-}
-
-void compute_secret_freq(char *secret)
-{
-    unsigned char i;
-    
-    reset_vect(freq);
-    
-    for(i=0;i<word_size;++i)
-    {
-        ++freq[secret[i]];
-    }
-}
-
-unsigned char in_dict(const char *word)
-{
-    unsigned char found = 0;
-    unsigned short i;
-    
-    for(i=0;i<dict_size;++i)
-    {
-        // printf("comparing %s with %s\n", word, dict[i]);
-        if(!strcmp(word,dict[i]))
-        {
-            return 1;
-        }
-    }
-    return 0;
-}
 
 
 void instructions(void)
@@ -255,52 +72,6 @@ void instructions(void)
 
 
 }
-
-
-#define MAX_SCORE_FOR_PARTIAL_MATCH 300
-
-#define BASE_SCORE 900
-
-unsigned short compute_score(unsigned char word_found, unsigned char attempt_number, unsigned char exact_matches, clock_t elapsed_time)
-{
-    
-    unsigned short score = 0;
-    
-    unsigned short bonus = 0;
-    
-    unsigned short time_penalty = 0;
-        
-    if(!word_found)
-    {
-        unsigned short points_for_single_letter = MAX_SCORE_FOR_PARTIAL_MATCH/(word_size-1);
-        
-        return exact_matches * points_for_single_letter;
-    }
-    else
-    {    
-        if (attempt_number<6)
-        {
-            bonus = 100;
-        }
-        
-        if(elapsed_time>300)
-        {
-            time_penalty = 300;
-        }
-        else if (elapsed_time>60)
-        {
-            time_penalty = elapsed_time - 60;
-        }
-        
-        return BASE_SCORE + bonus - time_penalty;
-    }
-    
-    // printf("exact_matches: %d\n", exact_matches);
-    // printf("bonus        : %5d\n", bonus);
-    // printf("time_penalty : %5d\n", time_penalty);
-
-}
-
 
 void show_found_letters(void)
 {
@@ -348,20 +119,9 @@ void show_found_letters(void)
         }
     }
     printf("\n");
-    // printf("------");
-    // printf("\n");
 }
 
 
-void make_lower(char * str)
-{
-    unsigned char i;
-    
-    for(int i = 0; str[i]; i++)
-    {
-        str[i] = tolower(str[i]);
-    }
-}
 
 void challenge(char *secret, unsigned char player)
 {  
@@ -520,9 +280,7 @@ void select_secret(unsigned short insert_secret_words, char *secret)
             scanf("%5s", secret);
         } while(!in_dict(secret));
         clrscr();
-    }
-    
-    // printf("%s\n", secret);
+    }    
 }
 
 
@@ -534,6 +292,7 @@ int main(int argc, char **argv)
     unsigned char player;
     unsigned short insert_secret_words;
     unsigned short same_secret;
+    
     char secret[9];    
     char yn[5];
 
@@ -567,6 +326,9 @@ int main(int argc, char **argv)
         printf("\nSecret word will have %d letters\n", word_size);
         
         dict_size = read_dict(dict_file);
+        
+        printf("Words in the dictionary %u\n", dict_size);
+        
         srand(time(NULL));
 
         printf("\nQuick play (y/n) ?");
