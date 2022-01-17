@@ -46,6 +46,18 @@
 
 #define VECT_SIZE 400
 
+#define NOT_TRIED 0
+#define TRIED_AND_NOT_FOUND 1
+#define FOUND_IN_WRONG_PLACE 2
+#define FOUND_IN_EXACT_PLACE 3
+
+#define MIN_WORD_LENGTH 3
+#define MAX_WORD_LENGTH 8
+
+#define MAX_ATTEMPTS 6
+
+#define MAX_PLAYERS 9
+
 
 unsigned short read_dict(unsigned char dict_file);
 
