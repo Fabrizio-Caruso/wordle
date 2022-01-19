@@ -38,9 +38,9 @@
 
 #define MAX_DICT_SIZE 50000
 
-#define MAX_SCORE_FOR_PARTIAL_MATCH 300
+#define MAX_SCORE_FOR_PARTIAL_MATCH 200
 
-#define BASE_SCORE 900
+#define BASE_SCORE 800
 
 #define MAX_WORD_SIZE 16
 
@@ -60,6 +60,12 @@
 
 
 unsigned short read_dict(unsigned char dict_file);
+
+unsigned char no(char ch);
+
+unsigned char yes(char ch);
+
+unsigned char yes_or_no(char ch);
 
 void reset_vect(unsigned short *vect);
 

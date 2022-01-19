@@ -17,6 +17,23 @@ extern char dict[MAX_DICT_SIZE][MAX_WORD_SIZE];
 extern unsigned short dict_size;
 extern unsigned short freq[VECT_SIZE];
 
+
+unsigned char no(char ch)
+{
+    return ch=='n' || ch=='N';
+}
+
+unsigned char yes(char ch)
+{
+    return ch=='y' || ch=='Y';
+}
+
+unsigned char yes_or_no(char ch)
+{
+    return yes(ch) || no(ch);
+}
+
+
 unsigned short read_dict(unsigned char dict_file)
 {
     FILE *fd;
@@ -188,7 +205,11 @@ unsigned short compute_score(unsigned char word_found, unsigned char attempt_num
     }
     else
     {    
-        if (attempt_number<6)
+        if (attempt_number<5)
+        {
+            bonus = 200;
+        }
+        else if (attempt_number<6)
         {
             bonus = 100;
         }

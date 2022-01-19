@@ -8,16 +8,28 @@
 
 #include <ctype.h>
 
+#include <ncurses.h>
+
 #include "common.h"
 
 
-#ifdef _WIN32
-#define clrscr() system("cls");
-#else
-#include <stdio.h>
-#define clrscr() printf("\e[1;1H\e[2J")
-#endif
+#define clrscr() clear()
 
+#define gotoxy(x,y) do { move(y,x); refresh(); } while(0)
+#define cputc(c) do { addch(c); refresh(); } while(0)
+#define setcolor(c) attron(COLOR_PAIR(c))
+
+#define YELLOW 1
+#define CYAN 2
+#define RED 3
+#define GREEN 4
+#define BLUE 5
+#define WHITE 6
+#define MAGENTA 7
+#define BLACK 8
+
+#define XSize 80
+#define YSize 24
 
 char dict[MAX_DICT_SIZE][MAX_WORD_SIZE];
 
@@ -41,30 +53,89 @@ unsigned short total_time[MAX_PLAYERS];
 
 unsigned short word_size;
 
+#if defined(_BACKGROUND_COLOR) && BACKGROUND_COLOR==_XL_WHITE
+    #define _NCURSES_BACKGROUND_COLOR COLOR_WHITE
+#else
+    #define _NCURSES_BACKGROUND_COLOR COLOR_BLACK
+#endif
 
+
+void PRESS_ENTER_TO_CONTINUE(void)
+{
+    move(YSize-2,0);
+    printw("Press ENTER to start");
+    refresh();
+    getchar();
+}
+
+void printxy(uint8_t x, uint8_t y, char * str)
+{
+	move(y,x); 
+	printw(str); 
+	refresh();
+}
+
+
+// void printdxy(x,y,length,val)
+// {
+    // move(y,x);
+    // printw("%0" #length "u",val);
+    // refresh();
+// }
+    
+// void cputcxy(x,y,ch) 
+// {
+    // move(y,x);
+    // cputc(ch);
+// }
+
+void init_scrteen(void)
+{
+    #if defined(__ATARI_ST__)
+        putenv("TERM=st52");
+    #endif
+	initscr();   
+	// noecho();
+	curs_set(0);
+	start_color();
+	cbreak();
+	intrflush(stdscr, TRUE);
+	init_pair(1, COLOR_YELLOW, _NCURSES_BACKGROUND_COLOR);
+	init_pair(2, COLOR_CYAN, _NCURSES_BACKGROUND_COLOR);
+	init_pair(3, COLOR_RED, _NCURSES_BACKGROUND_COLOR);
+	init_pair(4, COLOR_GREEN, _NCURSES_BACKGROUND_COLOR);
+	init_pair(5, COLOR_BLUE, _NCURSES_BACKGROUND_COLOR);
+	init_pair(6, COLOR_WHITE, _NCURSES_BACKGROUND_COLOR);
+	init_pair(7, COLOR_MAGENTA, _NCURSES_BACKGROUND_COLOR);
+	init_pair(8, COLOR_BLACK, _NCURSES_BACKGROUND_COLOR);
+    wbkgd(stdscr, COLOR_PAIR(1));
+    
+    refresh();
+}
 
 
 void instructions(void)
 {
-    printf("-----------------------------------------------------------------------------\n");
-    printf("                     INSTRUCTIONS\n");
-    printf("-----------------------------------------------------------------------------\n");
+    printxy(0, 6,"-----------------------------------------------------------------------------");
+    printxy(0, 7,"                     INSTRUCTIONS");
+    printxy(0, 8,"-----------------------------------------------------------------------------");
     
-    printf("Guess a secret word in max 6 attempts\n");
-    printf("'-' means letter nowhere in the secret word\n");
-    printf("'*' one occurence of this letter is elsewhere for each '*' on the same letter\n");
-    printf("A displayed letter means that it is correct in the displayed place\n");
-    printf("-----------------------------------------------------------------------------\n");
-    printf("Only small letters and no diacritics\n");
-    printf("Insert 'x' to give up\n");
-    printf("-----------------------------------------------------------------------------\n");
-
-
+    printxy(0, 9,"Guess a secret word in max 6 attempts");
+    printxy(0,10,"'-' means letter nowhere in the secret word");
+    printxy(0,11,"'*' one occurence of this letter is elsewhere for each '*' on the same letter");
+    printxy(0,12,"A displayed letter means that it is correct in the displayed place");
+    printxy(0,13,"-----------------------------------------------------------------------------");
+    printxy(0,14,"Only small letters and no diacritics");
+    printxy(0,15,"Insert 'x' to give up");
+    printxy(0,16,"-----------------------------------------------------------------------------");
 }
+
 
 void show_found_letters(void)
 {
     unsigned char ch;
+    
+    move(YSize/2,XSize/2);
     
     for(ch='a';ch<='z';++ch)
     {
@@ -72,16 +143,16 @@ void show_found_letters(void)
         {
             if(letter_found[ch]==FOUND_IN_EXACT_PLACE)
             {
-                printf("%c ",ch-'a'+'A');
+                printw("%c ",ch-'a'+'A');
             }
             else
             {
-                printf("%c ",ch);
+                printw("%c ",ch);
             }
         }
         else
         {
-                printf("%c ",ch);  
+                printw("%c ",ch);  
         }
     }
     printf("\n             ");
@@ -91,23 +162,25 @@ void show_found_letters(void)
         {
             if(letter_found[ch]==FOUND_IN_WRONG_PLACE)
             {
-                printf("* ");
+                printw("* ");
             }
             else if(letter_found[ch]==TRIED_AND_NOT_FOUND)
             {
-                printf("- ");
+                printw("- ");
             }
             else
             {
-                printf("  ");
+                printw("  ");
             }
         }
         else
         {
-            printf("? ");
+            printw("? ");
         }
     }
-    printf("\n");
+    refresh();
+    getchar();
+    // printf("\n");
 }
 
 
@@ -129,7 +202,9 @@ void challenge(char *secret, unsigned char player)
 
     reset_vect(letter_found);
     
-    printf("\n--------------------------------\n");
+    clrscr();
+    
+    printxy(0,0,"--------------------------------");
     
     #if defined(DEBUG)
         printf("secret: %s\n", secret);
@@ -142,12 +217,22 @@ void challenge(char *secret, unsigned char player)
     start_t = clock() / (CLOCKS_PER_SEC);
     while(attempt_number<=MAX_ATTEMPTS)
     {
-        printf("\n-------------");
-        printf("\nTry no. %d  : ", attempt_number);
-        show_found_letters();
+        // printf("\n-------------");
+        // printf("\nTry no. %d  : ", attempt_number);
+        // show_found_letters();
         
+        move(5+attempt_number,0);
+        curs_set(1);
+        setcolor(WHITE);
+        refresh();
+        // move(4+attempt_number*2,0);
+        // setcolor(WHITE);
+        // refresh();
+        scanw("%s", attempt);
+        curs_set(0);
         
-        scanf("%s", attempt);
+        move(5+attempt_number,0);
+        refresh();
         
         make_lower(attempt);
         
@@ -158,7 +243,15 @@ void challenge(char *secret, unsigned char player)
         
         if(!in_dict(attempt))
         {
-            printf("Not in dictionary\n");
+            move(YSize-2,0);
+            printw("Not in dictionary");
+            refresh();
+            sleep(1);
+            move(YSize-2,0);
+            printw("                 ");
+            move(5+attempt_number,0);
+            printw("                 ");
+            refresh();
         }
         else
         {
@@ -189,7 +282,9 @@ void challenge(char *secret, unsigned char player)
                 {
                     if(secret[i]==attempt[i])
                     {
-                        printf("%c",secret[i]);
+                        setcolor(GREEN);
+                        printw("%c",secret[i]);
+                        refresh();
                         letter_found[secret[i]] = FOUND_IN_EXACT_PLACE;
                     }
                     else
@@ -211,12 +306,16 @@ void challenge(char *secret, unsigned char player)
                         }
                         if(char_found)
                         {    
-                            printf("*");
+                            setcolor(YELLOW);
+                            printw("%c",attempt[i]);
+                            refresh();
                             ++hint[attempt[i]];
                         }
                         else
                         {
-                            printf("-");
+                            setcolor(RED);
+                            printw("%c",attempt[i]);
+                            refresh();
                         }
                         if(!letter_found[attempt[i]])
                         {
@@ -224,24 +323,34 @@ void challenge(char *secret, unsigned char player)
                         }
                     }
                 }
-                printf("\n");
+                refresh();
+                // printf("\n");
             }  
         }
     }
 
+    setcolor(WHITE);
+    refresh();
     --attempt_number;
-    printf("\n\n");
+    // printf("\n\n");
     
     if(word_found)
     {
-        printf("YOU WIN!\n");
+        printw("YOU WIN!");
+        refresh();
         ++wins[player];
     }
     else
     {
-        printf("YOU FAILED!\n");
-        printf("Secret word: %s\n", secret);
+        move(YSize-5,0);
+        printw("YOU FAILED!");
+        move(YSize-4,0);
+        printw("Secret word: %s\n", secret);
+        refresh();
     }
+    sleep(3);
+
+    PRESS_ENTER_TO_CONTINUE();
     
     elapsed_time = clock() / (CLOCKS_PER_SEC) - start_t;
     total_time[player]+=elapsed_time;
@@ -265,8 +374,12 @@ void select_secret(unsigned short insert_secret_words, char *secret)
         do
         {
             clrscr();
-            printf("Insert secret word\n");
-            scanf("%5s", secret);
+            move(0,0);
+            printw("Insert secret word\n");
+            refresh();
+            curs_set(1);
+            scanw("%5s", secret);
+            curs_set(0);
         } while(!in_dict(secret));
         clrscr();
     }    
@@ -283,24 +396,54 @@ int main(int argc, char **argv)
     unsigned short same_secret;
     
     char secret[9];    
-    char yn[5];
+    char selection;
+
+    init_scrteen();
+    setcolor(WHITE);
 
     while(1)
     {
         clrscr();
-        printf("\n\n\n-----------------------------------------------------------------------------\n");
-        printf("                      WORDLE\n");
-        printf("        ANSI C version by Fabrizio Caruso\n");
+        
+        printxy(0, 0,"-----------------------------------------------------------------------------");
+        printxy(0, 1,"                      WORDLE\n");
+        printxy(0, 2,"        ANSI C version by Fabrizio Caruso\n");
+        printxy(0, 3,"-----------------------------------------------------------------------------");
 
         instructions();
-        printf("\nChoose language\n1 = English\n2 = French\n3 = Italian\n4 = Romanian\n5 = Spanish\n6 = German\n7 = Portuguese\n:");
         
-        scanf("%d", &dict_file);
+        getchar();
+        
+        clrscr();
+        
+        printxy(0,0,"Choose language");
+        printxy(0,1,"1 = English");
+        printxy(0,2,"2 = French");
+        printxy(0,3,"3 = Italian");
+        printxy(0,4,"4 = Romanian");
+        printxy(0,5,"5 = Spanish");
+        printxy(0,6,"6 = German");
+        printxy(0,7,"7 = Portuguese");
+        
+        selection = getch();
+        dict_file = selection-'0';
+        // scanw("%d", &dict_file);
+        
+        printxy(0,8,"SELECTION");
+        gotoxy(0,10);
+        printw("selection: %c", selection);
+        refresh();
+        
+        // while(1){};
+        // getchar();
         
         if(dict_file==ENG)
         {
-            printf("\nChoose word size (3-8) :");
-            scanf("%d", &word_size);
+            clrscr();
+            printxy(0,0,"\nChoose word size (3-8) :");
+            
+            selection = getch();
+            word_size = selection - '0';
             
             if((word_size<MIN_WORD_LENGTH)||(word_size>MAX_WORD_LENGTH))
             {
@@ -311,23 +454,28 @@ int main(int argc, char **argv)
         {
             word_size = 5;
         }
+        clrscr();
         
-        printf("\nSecret word will have %d letters\n", word_size);
+        gotoxy(0,0);
+        printw("Secret word will have %d letters", word_size);
+        refresh();
         
         dict_size = read_dict(dict_file);
         
-        printf("Words in the dictionary %u\n", dict_size);
+        gotoxy(0,2);
+        printw("Words in the dictionary %u\n", dict_size);
+        refresh();
         
         srand(time(NULL));
 
-        printf("\nQuick play (y/n) ?");
+        printxy(0,4,"\nQuick play (y/n) ?");
         do
         {
-            scanf("%4s",yn);
+            selection = getch();
 
-        } while((yn[0]!='y')&&(yn[0]!='Y')&&(yn[0]!='n')&&(yn[0]!='N'));
-        
-        if((yn[0]=='y')||(yn[0]=='Y'))
+        } while(!yes_or_no(selection));
+                
+        if(yes(selection))
         {
             insert_secret_words = 0;
             number_of_players = 1;
@@ -336,61 +484,80 @@ int main(int argc, char **argv)
         }
         else
         {
- 
-            printf("\nHow many players?");
-            scanf("%d", &number_of_players);
+            clrscr();
+            printxy(0,0,"How many players?");
             
+            selection = getch();
+            
+            number_of_players = selection - '0';
+            
+            curs_set(1);
+
             if(number_of_players==1)
             {
                 same_secret = 0;
             }
             else
             {
-                printf("\nDo you want the same secret words for all players (y/n) ?");
+                printxy(0,2,"Do you want the same secret words for all players (y/n) ?");
 
+                move(3,0);
+                refresh();
                 do
                 {
-                    scanf("%4s",yn);
+                    // scanw("%4s",yn);
+                    selection = getch();
 
-                } while((yn[0]!='y')&&(yn[0]!='Y')&&(yn[0]!='n')&&(yn[0]!='N'));
+                } while(!yes_or_no(selection));
                 
-                if((yn[0]=='y')||(yn[0]=='Y'))
+                if(yes(selection))
                 {
                     same_secret = 1;
-                    printf("ONLY ONE player at a time should look at the screen.\n");
+                    printxy(0,3,"ONLY ONE player at a time should look at the screen.");
                 }
                 else
                 {
                     same_secret = 0;
-                    printf("Each player gets different secret words.\n");
+                    printxy(0,3,"Each player gets different secret words.");
                 } 
             }
 
-            printf("\nDo you want a player to choose the secret words (y/n) ?");
+            
+            printxy(0,5,"Do you want a player to choose the secret words (y/n) ?");
             do
             {
-                scanf("%4s",yn);
+                // scanw("%4s",yn);
+                selection = getch();
 
-            } while((yn[0]!='y')&&(yn[0]!='Y')&&(yn[0]!='n')&&(yn[0]!='N'));
+            } while(!yes_or_no(selection));
             
             
-            if((yn[0]=='y')||(yn[0]=='Y'))
+            if(yes(selection))
             {
                 insert_secret_words = 1;
-                printf("A player or other person will have to CHOOSE the secret words.\n");
+                printxy(0,6,"A player or other person will have to CHOOSE the secret words.");
             }
             else
             {
                 insert_secret_words = 0;
-                printf("Secret words will be RANDOMLY chosen by the computer.\n");
+                printxy(0,6,"Secret words will be RANDOMLY chosen by the computer.");
             }
             
 
-            printf("\nHow many words per game?");
-            scanf("%u", &number_of_challenges);
+            curs_set(0);
+
+            printxy(0,8,"How many words per game?");
+            
+            selection = getchar();
+            
+            number_of_challenges = selection - '0';    
+
+            move(9,0);
+            printxy(0,9,"You have selected %d words per game per player.");
+            refresh();
         }
         
-        getchar();
+        PRESS_ENTER_TO_CONTINUE();
         
         for(player=1;player<=number_of_players;++player)
         {
@@ -420,24 +587,29 @@ int main(int argc, char **argv)
                 }
                 
                 clrscr();
-                printf("\n-----------------------------------------------------------------------------\n");
-                printf("Player no. %d       Challenge no. %d\n", player, i);
-                printf(  "-----------------------------------------------------------------------------\n");
-
-                printf("\n");
-                printf("Press ENTER to start\n");
-                getchar();
+                printxy(0,0,"-----------------------------------------------------------------------------");
+                gotoxy(0,1);
+                printw("Player no. %d       Challenge no. %d", player, i);
+                refresh();
+                printxy(0,2,"-----------------------------------------------------------------------------");
+           
+                PRESS_ENTER_TO_CONTINUE();
 
                 challenge(secret, player);
-                printf("POINTS OBTAINED: %5d", match_score[player]);
+                
+                clrscr();
+                gotoxy(0,0);
+                printw("POINTS OBTAINED: %5d", match_score[player]);
+                refresh();
                 if(match_score[player]==1000)
                 {
-                    printf(" MAX SCORE!");
+                    printw(0," MAX SCORE!");
                 }
-                printf("\n");
+                printw("\n");
                 score[player]+=match_score[player];
-                printf("SCORE: %5d\n", score[player]);
-
+                printw("SCORE: %5d\n", score[player]);
+                refresh();
+                
                 getchar();
                 sleep(2);
                 getchar();
@@ -445,30 +617,33 @@ int main(int argc, char **argv)
         }
         
         clrscr();
-        printf("\n----------------------------------------------------------");
+        printw("\n----------------------------------------------------------");
         
-        printf("\nSCORE BOARD\n");
-        printf("\n----------------------------------------------------------\n");
+        printw("\nSCORE BOARD\n");
+        printw("\n----------------------------------------------------------\n");
 
             
         for(player=1;player<=number_of_players;++player)
         {
-            printf("PLAYER %u  |  GUESSED %02u/%02u  |  SCORE %06u  |  SECS %04u\n", player, wins[player], number_of_challenges, score[player], total_time[player]);
-            printf("----------------------------------------------------------\n");
+            printw("PLAYER %u  |  GUESSED %02u/%02u  |  SCORE %06u  |  SECS %04u\n", player, wins[player], number_of_challenges, score[player], total_time[player]);
+            printw("----------------------------------------------------------\n");
         }
-
+        refresh();
+        
         sleep(1);
         
-        do
-        {
-            getchar();
-            printf("Play again (Y/N)\n");
-
-            scanf("%4s",yn);
-
-        } while((yn[0]!='y')&&(yn[0]!='Y')&&(yn[0]!='n')&&(yn[0]!='N'));
+        printxy(0,YSize-2,"Press ENTER to start");
+        refresh();
+        getchar();  
         
-        if((yn[0]!='y')&&(yn[0]!='Y'))
+        do
+        {            
+            printw("Play again (Y/N)\n");
+            selection = getch();
+
+        } while(!yes_or_no(selection));
+        
+        if(no(selection))
         {
             break;
         }

@@ -1,4 +1,5 @@
-CC=x86_64-w64-mingw32-gcc
+# CC=x86_64-w64-mingw32-gcc
+CC=gcc
 CFLAGS=-I. 
 
 wordle.o: wordle.c
@@ -14,7 +15,7 @@ wordle: wordle.o common.o
 	$(CC) $(CFLAGS) -o wordle.exe wordle.o common.o
 
 wordle_ncurses: wordle_ncurses.o common.o
-	$(CC) $(CFLAGS) -o wordle.exe wordle.o common.o
+	$(CC) $(CFLAGS) -o wordle_ncurses.exe wordle_ncurses.o common.o -lncurses
 
 
 test: test.c
@@ -23,5 +24,5 @@ test: test.c
 
 clean:
 	rm -f *.o
-	rm *.exe
+	rm -f *.exe
 
