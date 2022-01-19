@@ -99,6 +99,7 @@ void init_scrteen(void)
 	curs_set(0);
 	start_color();
 	cbreak();
+    keypad(stdscr, true);
 	intrflush(stdscr, TRUE);
 	init_pair(1, COLOR_YELLOW, _NCURSES_BACKGROUND_COLOR);
 	init_pair(2, COLOR_CYAN, _NCURSES_BACKGROUND_COLOR);
@@ -134,8 +135,10 @@ void instructions(void)
 void show_found_letters(void)
 {
     unsigned char ch;
+    unsigned char x;
+    unsigned char y;
     
-    move(YSize/2,XSize/2);
+    move(YSize/2,XSize/2-10);
     
     for(ch='a';ch<='z';++ch)
     {
@@ -143,40 +146,48 @@ void show_found_letters(void)
         {
             if(letter_found[ch]==FOUND_IN_EXACT_PLACE)
             {
-                printw("%c ",ch-'a'+'A');
+                setcolor(GREEN);
+                printw("%c ",ch);
             }
             else
             {
+                setcolor(RED);
                 printw("%c ",ch);
             }
         }
         else
         {
+                setcolor(RED);
                 printw("%c ",ch);  
         }
     }
-    printf("\n             ");
-    for(ch='a';ch<='z';++ch)
+    
+    y=YSize/2;
+    x=XSize/2-10;
+
+    for(ch='a';ch<='z';++ch, x+=2)
     {
         if(letter_found[ch])
         {
             if(letter_found[ch]==FOUND_IN_WRONG_PLACE)
             {
-                printw("* ");
+                setcolor(YELLOW);
+                move(y,x);
+                printw("%c ",ch);
             }
-            else if(letter_found[ch]==TRIED_AND_NOT_FOUND)
-            {
-                printw("- ");
-            }
-            else
-            {
-                printw("  ");
-            }
+            // else if(letter_found[ch]==TRIED_AND_NOT_FOUND)
+            // {
+                // printw("- ");
+            // }
+            // else
+            // {
+                // x+=2;
+            // }
         }
-        else
-        {
-            printw("? ");
-        }
+        // else
+        // {
+            // printw("? ");
+        // }
     }
     refresh();
     getchar();
@@ -219,7 +230,7 @@ void challenge(char *secret, unsigned char player)
     {
         // printf("\n-------------");
         // printf("\nTry no. %d  : ", attempt_number);
-        // show_found_letters();
+        show_found_letters();
         
         move(5+attempt_number,0);
         curs_set(1);
@@ -336,6 +347,7 @@ void challenge(char *secret, unsigned char player)
     
     if(word_found)
     {
+        move(YSize-5,0);
         printw("YOU WIN!");
         refresh();
         ++wins[player];
@@ -345,7 +357,7 @@ void challenge(char *secret, unsigned char player)
         move(YSize-5,0);
         printw("YOU FAILED!");
         move(YSize-4,0);
-        printw("Secret word: %s\n", secret);
+        printw("Secret word: %s", secret);
         refresh();
     }
     sleep(3);
@@ -632,13 +644,10 @@ int main(int argc, char **argv)
         
         sleep(1);
         
-        printxy(0,YSize-2,"Press ENTER to start");
-        refresh();
-        getchar();  
-        
         do
         {            
             printw("Play again (Y/N)\n");
+            refresh();
             selection = getch();
 
         } while(!yes_or_no(selection));
