@@ -138,7 +138,7 @@ void show_found_letters(void)
     unsigned char x;
     unsigned char y;
     
-    move(YSize/2,XSize/2-10);
+    move(YSize-10,2);
     
     for(ch='a';ch<='z';++ch)
     {
@@ -155,15 +155,22 @@ void show_found_letters(void)
                 printw("%c ",ch);
             }
         }
-        else
+        else if(letter_found[ch]==TRIED_AND_NOT_FOUND)
         {
                 setcolor(RED);
                 printw("%c ",ch);  
         }
+        else
+        {
+                setcolor(WHITE);
+                printw("%c ",ch);  
+        }
     }
     
-    y=YSize/2;
-    x=XSize/2-10;
+    y=YSize-10;
+    x=2;
+
+    move(YSize-10,2);
 
     for(ch='a';ch<='z';++ch, x+=2)
     {
@@ -175,22 +182,10 @@ void show_found_letters(void)
                 move(y,x);
                 printw("%c ",ch);
             }
-            // else if(letter_found[ch]==TRIED_AND_NOT_FOUND)
-            // {
-                // printw("- ");
-            // }
-            // else
-            // {
-                // x+=2;
-            // }
         }
-        // else
-        // {
-            // printw("? ");
-        // }
     }
     refresh();
-    getchar();
+    // getchar();
     // printf("\n");
 }
 
@@ -366,8 +361,11 @@ void challenge(char *secret, unsigned char player)
     
     elapsed_time = clock() / (CLOCKS_PER_SEC) - start_t;
     total_time[player]+=elapsed_time;
-    printf("Attempts: %d\n", attempt_number);
-    printf("Time: %d\n", elapsed_time);
+    clrscr();
+    move(0,0);
+    printw("Attempts: %d\n", attempt_number);
+    printw("Time: %d\n", elapsed_time);
+    refresh();
     match_score[player] = compute_score(word_found, attempt_number, exact_matches, elapsed_time);   
 }
 
