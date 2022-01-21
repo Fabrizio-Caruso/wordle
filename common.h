@@ -75,6 +75,8 @@ unsigned char in_dict(const char *word);
 
 void make_lower(char * str);
 
-unsigned short compute_score(unsigned char word_found, unsigned char attempt_number, unsigned char exact_matches, clock_t elapsed_time);
+unsigned short compute_score(unsigned char exact_matches, unsigned char attempt_number, clock_t elapsed_time);
+
+unsigned short max_score(unsigned short *score_function);
 
 #endif // _COMMON_H

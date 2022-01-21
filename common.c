@@ -17,6 +17,7 @@ extern char dict[MAX_DICT_SIZE][MAX_WORD_SIZE];
 extern unsigned short dict_size;
 extern unsigned short freq[VECT_SIZE];
 
+extern unsigned short number_of_players;
 
 unsigned char no(char ch)
 {
@@ -188,7 +189,7 @@ void make_lower(char * str)
 }
 
 
-unsigned short compute_score(unsigned char word_found, unsigned char attempt_number, unsigned char exact_matches, clock_t elapsed_time)
+unsigned short compute_score(unsigned char exact_matches, unsigned char attempt_number, clock_t elapsed_time)
 {
     
     unsigned short score = 0;
@@ -197,7 +198,7 @@ unsigned short compute_score(unsigned char word_found, unsigned char attempt_num
     
     unsigned short time_penalty = 0;
         
-    if(!word_found)
+    if(exact_matches<word_size)
     {
         unsigned short points_for_single_letter = MAX_SCORE_FOR_PARTIAL_MATCH/(word_size-1);
         
@@ -226,3 +227,20 @@ unsigned short compute_score(unsigned char word_found, unsigned char attempt_num
         return BASE_SCORE + bonus - time_penalty;
     }
 }
+
+
+unsigned short max_score(unsigned short *score_function)
+{
+    unsigned char player;
+    unsigned short max_score = 0;
+    
+    for(player=1;player<=number_of_players;++player)
+    {
+        if(score_function[player]>max_score)
+        {
+            max_score = score_function[player];
+        }
+    }
+    return max_score;
+}
+

@@ -56,7 +56,7 @@ unsigned short match_score[MAX_PLAYERS];
 
 unsigned short score[MAX_PLAYERS];
 
-unsigned char wins[MAX_PLAYERS];
+unsigned short wins[MAX_PLAYERS];
 
 unsigned short total_time[MAX_PLAYERS];
 
@@ -387,16 +387,23 @@ void challenge(char *secret, unsigned char player)
     if(word_found)
     {
         move(YSize-5,0);
+        setcolor(GREEN_BACKGROUND);
         printw("YOU WIN!");
+        setcolor(WHITE);
         refresh();
         ++wins[player];
     }
     else
     {
         move(YSize-5,0);
+        setcolor(RED_BACKGROUND);
         printw("YOU FAILED!");
+        setcolor(WHITE);
         move(YSize-4,0);
-        printw("Secret word: %s", secret);
+        printw("Secret word: ");
+        setcolor(GREEN_BACKGROUND);
+        printw("%s", secret);
+        setcolor(WHITE);
         refresh();
     }
     sleep(2);
@@ -410,7 +417,7 @@ void challenge(char *secret, unsigned char player)
     printw("Attempts: %d\n", attempt_number);
     printw("Time: %d\n", elapsed_time);
     refresh();
-    match_score[player] = compute_score(word_found, attempt_number, exact_matches, elapsed_time);   
+    match_score[player] = compute_score(exact_matches, attempt_number, elapsed_time);   
 }
 
 
@@ -443,11 +450,10 @@ void score_board(void)
 {
     unsigned char player;
     
-    clrscr();
-    printw("\n----------------------------------------------------------");
+    printw("----------------------------------------------------------\n");
     
-    printw("\nSCORE BOARD\n");
-    printw("\n----------------------------------------------------------\n");
+    printw("SCORE BOARD\n");
+    printw("----------------------------------------------------------\n");
 
         
     for(player=1;player<=number_of_players;++player)
@@ -460,6 +466,21 @@ void score_board(void)
     sleep(1);
     
     PRESS_ENTER_TO_CONTINUE();
+}
+
+
+void display_winners(unsigned short max, unsigned short *score_function)
+{
+    unsigned char player;
+    unsigned short max_score = 0;
+    
+    for(player=1;player<=number_of_players;++player)
+    {
+        if(score_function[player]==max)
+        {
+            printw("%u ", player);
+        }
+    }
 }
 
 
@@ -550,12 +571,6 @@ int main(int argc, char **argv)
             {
                 word_size = 5;
             }
-            clrscr();
-            
-            gotoxy(0,0);
-            printw("Secret word will have %d letters", word_size);
-            refresh();
-           
         
             clrscr();
             printxy(0,0,"How many players?");
@@ -639,9 +654,16 @@ int main(int argc, char **argv)
         
         sleep(1);
         
+        
+        gotoxy(0,4);
+        printw("Secret word will have %d letters", word_size);
+        refresh();
+        sleep(1);
+
+        PRESS_ENTER_TO_CONTINUE();
+
         srand(time(NULL));
 
-        // PRESS_ENTER_TO_CONTINUE();
         
         for(player=1;player<=number_of_players;++player)
         {
@@ -685,20 +707,30 @@ int main(int argc, char **argv)
                 clrscr();
                 gotoxy(0,0);
                 printw("POINTS OBTAINED: %5d", match_score[player]);
-                refresh();
                 if(match_score[player]==1000)
                 {
+                    setcolor(GREEN);
                     printw(" MAX SCORE!");
+                    setcolor(WHITE);
                 }
+                refresh();
                 gotoxy(0,2);
                 score[player]+=match_score[player];
+                clrscr();
                 score_board();
-                sleep(1);
             }
         }
         
         clrscr();
+        printw("----------------------------------------------------------\n");
+        printw("F I N A L   R E S U L T S\n");
         score_board();
+        
+        move(YSize-6,0);
+        display_winners(max_score(score), score);
+        
+        move(YSize-4,0);
+        display_winners(max_score(score), wins);
         
         move(YSize-2,0);
         do
