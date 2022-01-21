@@ -28,6 +28,15 @@
 #define MAGENTA 7
 #define BLACK 8
 
+#define YELLOW_BACKGROUND 9
+#define CYAN_BACKGROUND 10
+#define RED_BACKGROUND 11
+#define GREEN_BACKGROUND 12
+#define BLUE_BACKGROUND 13
+#define WHITE_BACKGROUND 14
+#define MAGENTA_BACKGROUND 15
+#define BLACK_BACKGROUND 16
+
 #define XSize 80
 #define YSize 24
 
@@ -53,11 +62,20 @@ unsigned short total_time[MAX_PLAYERS];
 
 unsigned short word_size;
 
-#if defined(_BACKGROUND_COLOR) && BACKGROUND_COLOR==_XL_WHITE
-    #define _NCURSES_BACKGROUND_COLOR COLOR_WHITE
-#else
+unsigned short number_of_players;
+
+unsigned int number_of_challenges;
+
+
+// #if defined(_BACKGROUND_COLOR) && BACKGROUND_COLOR==_XL_WHITE
+    // #define _NCURSES_BACKGROUND_COLOR COLOR_WHITE
+    // #define _NCURSES_FOREGROUND_COLOR COLOR_BLACK
+
+// #else
     #define _NCURSES_BACKGROUND_COLOR COLOR_BLACK
-#endif
+    #define _NCURSES_FOREGROUND_COLOR COLOR_WHITE
+
+// #endif
 
 
 void PRESS_ENTER_TO_CONTINUE(void)
@@ -66,6 +84,9 @@ void PRESS_ENTER_TO_CONTINUE(void)
     printw("Press ENTER to start");
     refresh();
     getchar();
+    move(YSize-2,0);
+    printw("                    ");
+    refresh();
 }
 
 void printxy(uint8_t x, uint8_t y, char * str)
@@ -101,14 +122,24 @@ void init_scrteen(void)
 	cbreak();
     keypad(stdscr, true);
 	intrflush(stdscr, TRUE);
-	init_pair(1, COLOR_YELLOW, _NCURSES_BACKGROUND_COLOR);
-	init_pair(2, COLOR_CYAN, _NCURSES_BACKGROUND_COLOR);
-	init_pair(3, COLOR_RED, _NCURSES_BACKGROUND_COLOR);
-	init_pair(4, COLOR_GREEN, _NCURSES_BACKGROUND_COLOR);
-	init_pair(5, COLOR_BLUE, _NCURSES_BACKGROUND_COLOR);
-	init_pair(6, COLOR_WHITE, _NCURSES_BACKGROUND_COLOR);
-	init_pair(7, COLOR_MAGENTA, _NCURSES_BACKGROUND_COLOR);
-	init_pair(8, COLOR_BLACK, _NCURSES_BACKGROUND_COLOR);
+	init_pair( 1, COLOR_YELLOW, _NCURSES_BACKGROUND_COLOR);
+	init_pair( 2, COLOR_CYAN, _NCURSES_BACKGROUND_COLOR);
+	init_pair( 3, COLOR_RED, _NCURSES_BACKGROUND_COLOR);
+	init_pair( 4, COLOR_GREEN, _NCURSES_BACKGROUND_COLOR);
+	init_pair( 5, COLOR_BLUE, _NCURSES_BACKGROUND_COLOR);
+	init_pair( 6, COLOR_WHITE, _NCURSES_BACKGROUND_COLOR);
+	init_pair( 7, COLOR_MAGENTA, _NCURSES_BACKGROUND_COLOR);
+	init_pair( 8, COLOR_BLACK, _NCURSES_BACKGROUND_COLOR);
+    
+	init_pair( 9, COLOR_BLACK, COLOR_YELLOW);
+	init_pair(10, _NCURSES_FOREGROUND_COLOR, COLOR_CYAN);
+	init_pair(11, _NCURSES_FOREGROUND_COLOR, COLOR_RED);
+	init_pair(12, COLOR_BLACK, COLOR_GREEN);
+	init_pair(13, _NCURSES_FOREGROUND_COLOR, COLOR_BLUE);
+	init_pair(14, COLOR_BLACK, COLOR_WHITE);
+	init_pair(15, _NCURSES_FOREGROUND_COLOR, COLOR_MAGENTA);
+	init_pair(16, _NCURSES_FOREGROUND_COLOR, COLOR_BLACK);
+    
     wbkgd(stdscr, COLOR_PAIR(1));
     
     refresh();
@@ -142,48 +173,54 @@ void show_found_letters(void)
     
     for(ch='a';ch<='z';++ch)
     {
-        if(letter_found[ch])
+
+        if(letter_found[ch]==FOUND_IN_EXACT_PLACE)
         {
-            if(letter_found[ch]==FOUND_IN_EXACT_PLACE)
-            {
-                setcolor(GREEN);
-                printw("%c ",ch);
-            }
-            else
-            {
-                setcolor(RED);
-                printw("%c ",ch);
-            }
+            setcolor(GREEN_BACKGROUND);
+            printw("%c",ch);
+            setcolor(WHITE);
+            printw(" ");
+        }
+        else if(letter_found[ch]==FOUND_IN_WRONG_PLACE)
+        {
+            setcolor(YELLOW_BACKGROUND);
+            printw("%c",ch);
+            setcolor(WHITE);
+            printw(" ");
         }
         else if(letter_found[ch]==TRIED_AND_NOT_FOUND)
         {
-                setcolor(RED);
-                printw("%c ",ch);  
+            setcolor(RED_BACKGROUND);
+            printw("%c",ch);
+            setcolor(WHITE);
+            printw(" ");                
         }
         else
         {
-                setcolor(WHITE);
-                printw("%c ",ch);  
+            setcolor(WHITE_BACKGROUND);
+            printw("%c",ch);
+            setcolor(WHITE);
+            printw(" ");                
         }
     }
     
-    y=YSize-10;
-    x=2;
+    // y=YSize-10;
+    // x=2;
 
-    move(YSize-10,2);
+    // move(YSize-10,2);
 
-    for(ch='a';ch<='z';++ch, x+=2)
-    {
-        if(letter_found[ch])
-        {
-            if(letter_found[ch]==FOUND_IN_WRONG_PLACE)
-            {
-                setcolor(YELLOW);
-                move(y,x);
-                printw("%c ",ch);
-            }
-        }
-    }
+    // for(ch='a';ch<='z';++ch, x+=2)
+    // {
+        // if(letter_found[ch])
+        // {
+            // if(letter_found[ch]==FOUND_IN_WRONG_PLACE)
+            // {
+                // setcolor(YELLOW);
+                // move(y,x);
+                // printw("%c ",ch);
+            // }
+        // }
+    // }
     refresh();
     // getchar();
     // printf("\n");
@@ -208,12 +245,12 @@ void challenge(char *secret, unsigned char player)
 
     reset_vect(letter_found);
     
-    clrscr();
+    // clrscr();
     
-    printxy(0,0,"--------------------------------");
+    // printxy(0,0,"--------------------------------");
     
     #if defined(DEBUG)
-        printf("secret: %s\n", secret);
+        printw("secret: %s\n", secret);
     #endif
     
 
@@ -234,6 +271,7 @@ void challenge(char *secret, unsigned char player)
         // move(4+attempt_number*2,0);
         // setcolor(WHITE);
         // refresh();
+        
         scanw("%s", attempt);
         curs_set(0);
         
@@ -268,6 +306,12 @@ void challenge(char *secret, unsigned char player)
             if(!strcmp(secret,attempt))
             {
                 word_found = 1;
+                setcolor(GREEN_BACKGROUND);
+                move(4+attempt_number,0);
+                printw("%s",secret);
+                refresh();
+                sleep(1);
+                setcolor(WHITE);
                 break;
             }
             else
@@ -288,7 +332,7 @@ void challenge(char *secret, unsigned char player)
                 {
                     if(secret[i]==attempt[i])
                     {
-                        setcolor(GREEN);
+                        setcolor(GREEN_BACKGROUND);
                         printw("%c",secret[i]);
                         refresh();
                         letter_found[secret[i]] = FOUND_IN_EXACT_PLACE;
@@ -312,14 +356,14 @@ void challenge(char *secret, unsigned char player)
                         }
                         if(char_found)
                         {    
-                            setcolor(YELLOW);
+                            setcolor(YELLOW_BACKGROUND);
                             printw("%c",attempt[i]);
                             refresh();
                             ++hint[attempt[i]];
                         }
                         else
                         {
-                            setcolor(RED);
+                            setcolor(RED_BACKGROUND);
                             printw("%c",attempt[i]);
                             refresh();
                         }
@@ -355,7 +399,7 @@ void challenge(char *secret, unsigned char player)
         printw("Secret word: %s", secret);
         refresh();
     }
-    sleep(3);
+    sleep(2);
 
     PRESS_ENTER_TO_CONTINUE();
     
@@ -395,12 +439,33 @@ void select_secret(unsigned short insert_secret_words, char *secret)
     }    
 }
 
+void score_board(void)
+{
+    unsigned char player;
+    
+    clrscr();
+    printw("\n----------------------------------------------------------");
+    
+    printw("\nSCORE BOARD\n");
+    printw("\n----------------------------------------------------------\n");
+
+        
+    for(player=1;player<=number_of_players;++player)
+    {
+        printw("PLAYER %u  |  GUESSED %02u/%02u  |  SCORE %06u  |  SECS %04u\n", player, wins[player], number_of_challenges, score[player], total_time[player]);
+        printw("----------------------------------------------------------\n");
+    }
+    refresh();
+    
+    sleep(1);
+    
+    PRESS_ENTER_TO_CONTINUE();
+}
+
 
 int main(int argc, char **argv)
 {
     unsigned char i;
-    unsigned int number_of_challenges;
-    unsigned short number_of_players;
     unsigned char player;
     unsigned short insert_secret_words;
     unsigned short same_secret;
@@ -435,49 +500,20 @@ int main(int argc, char **argv)
         printxy(0,6,"6 = German");
         printxy(0,7,"7 = Portuguese");
         
+        move(9,0);
         selection = getch();
         dict_file = selection-'0';
         // scanw("%d", &dict_file);
         
-        printxy(0,8,"SELECTION");
-        gotoxy(0,10);
-        printw("selection: %c", selection);
+        // printxy(0,,"SELECTION");
         refresh();
         
+        sleep(1);
         // while(1){};
         // getchar();
-        
-        if(dict_file==ENG)
-        {
-            clrscr();
-            printxy(0,0,"\nChoose word size (3-8) :");
-            
-            selection = getch();
-            word_size = selection - '0';
-            
-            if((word_size<MIN_WORD_LENGTH)||(word_size>MAX_WORD_LENGTH))
-            {
-                word_size = 5;
-            }
-        }
-        else
-        {
-            word_size = 5;
-        }
+       
         clrscr();
         
-        gotoxy(0,0);
-        printw("Secret word will have %d letters", word_size);
-        refresh();
-        
-        dict_size = read_dict(dict_file);
-        
-        gotoxy(0,2);
-        printw("Words in the dictionary %u\n", dict_size);
-        refresh();
-        
-        srand(time(NULL));
-
         printxy(0,4,"\nQuick play (y/n) ?");
         do
         {
@@ -487,6 +523,7 @@ int main(int argc, char **argv)
                 
         if(yes(selection))
         {
+            word_size = 5;
             insert_secret_words = 0;
             number_of_players = 1;
             number_of_challenges = 1;
@@ -494,6 +531,32 @@ int main(int argc, char **argv)
         }
         else
         {
+            clrscr();
+            
+            if(dict_file==ENG)
+            {
+                clrscr();
+                printxy(0,0,"\nChoose word size (3-8) :");
+                
+                selection = getch();
+                word_size = selection - '0';
+                
+                if((word_size<MIN_WORD_LENGTH)||(word_size>MAX_WORD_LENGTH))
+                {
+                    word_size = 5;
+                }
+            }
+            else
+            {
+                word_size = 5;
+            }
+            clrscr();
+            
+            gotoxy(0,0);
+            printw("Secret word will have %d letters", word_size);
+            refresh();
+           
+        
             clrscr();
             printxy(0,0,"How many players?");
             
@@ -566,8 +629,19 @@ int main(int argc, char **argv)
             printxy(0,9,"You have selected %d words per game per player.");
             refresh();
         }
+
+        clrscr();
+        dict_size = read_dict(dict_file);
         
-        PRESS_ENTER_TO_CONTINUE();
+        gotoxy(0,2);
+        printw("Words in the dictionary %u\n", dict_size);
+        refresh();
+        
+        sleep(1);
+        
+        srand(time(NULL));
+
+        // PRESS_ENTER_TO_CONTINUE();
         
         for(player=1;player<=number_of_players;++player)
         {
@@ -603,6 +677,7 @@ int main(int argc, char **argv)
                 refresh();
                 printxy(0,2,"-----------------------------------------------------------------------------");
            
+                sleep(1);
                 PRESS_ENTER_TO_CONTINUE();
 
                 challenge(secret, player);
@@ -613,35 +688,19 @@ int main(int argc, char **argv)
                 refresh();
                 if(match_score[player]==1000)
                 {
-                    printw(0," MAX SCORE!");
+                    printw(" MAX SCORE!");
                 }
-                printw("\n");
+                gotoxy(0,2);
                 score[player]+=match_score[player];
-                printw("SCORE: %5d\n", score[player]);
-                refresh();
-                
-                getchar();
-                sleep(2);
-                getchar();
+                score_board();
+                sleep(1);
             }
         }
         
         clrscr();
-        printw("\n----------------------------------------------------------");
+        score_board();
         
-        printw("\nSCORE BOARD\n");
-        printw("\n----------------------------------------------------------\n");
-
-            
-        for(player=1;player<=number_of_players;++player)
-        {
-            printw("PLAYER %u  |  GUESSED %02u/%02u  |  SCORE %06u  |  SECS %04u\n", player, wins[player], number_of_challenges, score[player], total_time[player]);
-            printw("----------------------------------------------------------\n");
-        }
-        refresh();
-        
-        sleep(1);
-        
+        move(YSize-2,0);
         do
         {            
             printw("Play again (Y/N)\n");
