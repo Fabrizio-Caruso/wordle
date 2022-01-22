@@ -52,7 +52,7 @@ unsigned short freq[VECT_SIZE];
 unsigned short hint[VECT_SIZE];
 unsigned short letter_found[VECT_SIZE]; 
 
-unsigned short match_score[MAX_PLAYERS];
+unsigned short match_score;
 
 unsigned short score[MAX_PLAYERS];
 
@@ -258,11 +258,16 @@ void challenge(char *secret, unsigned char player)
     word_found = 0;
     
     start_t = clock() / (CLOCKS_PER_SEC);
+    
     while(attempt_number<=MAX_ATTEMPTS)
     {
         // printf("\n-------------");
         // printf("\nTry no. %d  : ", attempt_number);
         show_found_letters();
+        
+        move(4,0);
+        printw("TIME: %03u\n", clock()/ (CLOCKS_PER_SEC) - start_t);
+        refresh();
         
         move(5+attempt_number,0);
         curs_set(1);
@@ -306,6 +311,7 @@ void challenge(char *secret, unsigned char player)
             if(!strcmp(secret,attempt))
             {
                 word_found = 1;
+                exact_matches = word_size;
                 setcolor(GREEN_BACKGROUND);
                 move(4+attempt_number,0);
                 printw("%s",secret);
@@ -417,7 +423,11 @@ void challenge(char *secret, unsigned char player)
     printw("Attempts: %d\n", attempt_number);
     printw("Time: %d\n", elapsed_time);
     refresh();
-    match_score[player] = compute_score(exact_matches, attempt_number, elapsed_time);   
+    match_score = compute_score(exact_matches, attempt_number, elapsed_time);   
+    printw("Match score: %u", match_score);
+    refresh();
+    sleep(1);
+    PRESS_ENTER_TO_CONTINUE();
 }
 
 
@@ -704,18 +714,20 @@ int main(int argc, char **argv)
 
                 challenge(secret, player);
                 
-                clrscr();
-                gotoxy(0,0);
-                printw("POINTS OBTAINED: %5d", match_score[player]);
-                if(match_score[player]==1000)
-                {
-                    setcolor(GREEN);
-                    printw(" MAX SCORE!");
-                    setcolor(WHITE);
-                }
-                refresh();
-                gotoxy(0,2);
-                score[player]+=match_score[player];
+                sleep(1);
+                
+                // clrscr();
+                // gotoxy(0,0);
+                // printw("POINTS OBTAINED: %5d", match_score[player]);
+                // if(match_score[player]==1000)
+                // {
+                    // setcolor(GREEN);
+                    // printw(" MAX SCORE!");
+                    // setcolor(WHITE);
+                // }
+                // refresh();
+                // gotoxy(0,2);
+                score[player]+=match_score;
                 clrscr();
                 score_board();
             }
@@ -726,11 +738,13 @@ int main(int argc, char **argv)
         printw("F I N A L   R E S U L T S\n");
         score_board();
         
-        move(YSize-6,0);
+        move(YSize-7,0);
+        printw("Player(s) with highest score: ");
         display_winners(max_score(score), score);
         
-        move(YSize-4,0);
-        display_winners(max_score(score), wins);
+        move(YSize-5,0);
+        printw("Player(s) with most wins: ");
+        display_winners(max_score(wins), wins);
         
         move(YSize-2,0);
         do

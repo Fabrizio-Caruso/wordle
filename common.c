@@ -188,7 +188,7 @@ void make_lower(char * str)
     }
 }
 
-
+#include <ncurses.h>
 unsigned short compute_score(unsigned char exact_matches, unsigned char attempt_number, clock_t elapsed_time)
 {
     
@@ -198,6 +198,13 @@ unsigned short compute_score(unsigned char exact_matches, unsigned char attempt_
     
     unsigned short time_penalty = 0;
         
+    // clear();
+    // printw("exact_matches %u\n", exact_matches);
+    // printw("attempt_number %u\n", attempt_number);
+    // printw("word_size %u\n", word_size);
+    // sleep(2);
+    
+    
     if(exact_matches<word_size)
     {
         unsigned short points_for_single_letter = MAX_SCORE_FOR_PARTIAL_MATCH/(word_size-1);
