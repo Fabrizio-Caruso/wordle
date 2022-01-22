@@ -237,8 +237,8 @@ void challenge(char *secret, unsigned char player)
     unsigned char word_found;
     unsigned char exact_matches;
     
-    clock_t start_t;
-    clock_t elapsed_time;
+    time_t start_t;
+    time_t elapsed_time;
     
 
     compute_secret_freq(secret);
@@ -257,7 +257,7 @@ void challenge(char *secret, unsigned char player)
     attempt_number = 1;
     word_found = 0;
     
-    start_t = clock() / (CLOCKS_PER_SEC);
+    start_t = time(NULL);
     
     while(attempt_number<=MAX_ATTEMPTS)
     {
@@ -265,9 +265,9 @@ void challenge(char *secret, unsigned char player)
         // printf("\nTry no. %d  : ", attempt_number);
         show_found_letters();
         
-        move(4,0);
-        printw("TIME: %03u\n", clock()/ (CLOCKS_PER_SEC) - start_t);
-        refresh();
+        // move(4,0);
+        // printw("TIME: %03u\n", clock()/ (CLOCKS_PER_SEC) - start_t);
+        // refresh();
         
         move(5+attempt_number,0);
         curs_set(1);
@@ -416,7 +416,7 @@ void challenge(char *secret, unsigned char player)
 
     PRESS_ENTER_TO_CONTINUE();
     
-    elapsed_time = clock() / (CLOCKS_PER_SEC) - start_t;
+    elapsed_time = time(NULL) - start_t;
     total_time[player]+=elapsed_time;
     clrscr();
     move(0,0);
