@@ -83,7 +83,7 @@ void PRESS_ENTER_TO_CONTINUE(void)
     move(YSize-2,0);
     printw("Press ENTER to start");
     refresh();
-    getchar();
+    getch();
     move(YSize-2,0);
     printw("                    ");
     refresh();
@@ -746,9 +746,9 @@ int main(int argc, char **argv)
         printw("Player(s) with most wins: ");
         display_winners(max_score(wins), wins);
         
-        move(YSize-2,0);
         do
-        {            
+        {       
+            move(YSize-2,0);
             printw("Play again (Y/N)\n");
             refresh();
             selection = getch();
