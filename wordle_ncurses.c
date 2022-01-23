@@ -203,27 +203,8 @@ void show_found_letters(void)
             printw(" ");                
         }
     }
-    
-    // y=YSize-10;
-    // x=2;
 
-    // move(YSize-10,2);
-
-    // for(ch='a';ch<='z';++ch, x+=2)
-    // {
-        // if(letter_found[ch])
-        // {
-            // if(letter_found[ch]==FOUND_IN_WRONG_PLACE)
-            // {
-                // setcolor(YELLOW);
-                // move(y,x);
-                // printw("%c ",ch);
-            // }
-        // }
-    // }
     refresh();
-    // getchar();
-    // printf("\n");
 }
 
 
@@ -244,11 +225,7 @@ void challenge(char *secret, unsigned char player)
     compute_secret_freq(secret);
 
     reset_vect(letter_found);
-    
-    // clrscr();
-    
-    // printxy(0,0,"--------------------------------");
-    
+
     #if defined(DEBUG)
         printw("secret: %s\n", secret);
     #endif
@@ -261,22 +238,13 @@ void challenge(char *secret, unsigned char player)
     
     while(attempt_number<=MAX_ATTEMPTS)
     {
-        // printf("\n-------------");
-        // printf("\nTry no. %d  : ", attempt_number);
         show_found_letters();
-        
-        // move(4,0);
-        // printw("TIME: %03u\n", clock()/ (CLOCKS_PER_SEC) - start_t);
-        // refresh();
-        
+
         move(5+attempt_number,0);
         curs_set(1);
         setcolor(WHITE);
         refresh();
-        // move(4+attempt_number*2,0);
-        // setcolor(WHITE);
-        // refresh();
-        
+
         scanw("%s", attempt);
         curs_set(0);
         
@@ -380,7 +348,6 @@ void challenge(char *secret, unsigned char player)
                     }
                 }
                 refresh();
-                // printf("\n");
             }  
         }
     }
@@ -388,7 +355,6 @@ void challenge(char *secret, unsigned char player)
     setcolor(WHITE);
     refresh();
     --attempt_number;
-    // printf("\n\n");
     
     if(word_found)
     {
@@ -455,6 +421,7 @@ void select_secret(unsigned short insert_secret_words, char *secret)
         clrscr();
     }    
 }
+
 
 void score_board(void)
 {
@@ -534,15 +501,11 @@ int main(int argc, char **argv)
         move(9,0);
         selection = getch();
         dict_file = selection-'0';
-        // scanw("%d", &dict_file);
         
-        // printxy(0,,"SELECTION");
         refresh();
         
         sleep(1);
-        // while(1){};
-        // getchar();
-       
+
         clrscr();
         
         printxy(0,4,"\nQuick play (y/n) ?");
@@ -624,7 +587,6 @@ int main(int argc, char **argv)
             printxy(0,5,"Do you want a player to choose the secret words (y/n) ?");
             do
             {
-                // scanw("%4s",yn);
                 selection = getch();
 
             } while(!yes_or_no(selection));
@@ -715,18 +677,7 @@ int main(int argc, char **argv)
                 challenge(secret, player);
                 
                 sleep(1);
-                
-                // clrscr();
-                // gotoxy(0,0);
-                // printw("POINTS OBTAINED: %5d", match_score[player]);
-                // if(match_score[player]==1000)
-                // {
-                    // setcolor(GREEN);
-                    // printw(" MAX SCORE!");
-                    // setcolor(WHITE);
-                // }
-                // refresh();
-                // gotoxy(0,2);
+
                 score[player]+=match_score;
                 clrscr();
                 score_board();
