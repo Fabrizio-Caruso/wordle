@@ -47,6 +47,7 @@ char attempt[MAX_WORD_SIZE];
 unsigned char dict_file;
 
 unsigned short dict_size;
+unsigned short secret_dict_size;
 
 unsigned short freq[VECT_SIZE];
 unsigned short hint[VECT_SIZE];
@@ -78,10 +79,10 @@ unsigned int number_of_challenges;
 // #endif
 
 
-void PRESS_ENTER_TO_CONTINUE(void)
+void PRESS_A_KEY_TO_CONTINUE(void)
 {
     move(YSize-2,0);
-    printw("Press ENTER to start");
+    printw("Press a key to start");
     refresh();
     getch();
     move(YSize-2,0);
@@ -380,7 +381,7 @@ void challenge(char *secret, unsigned char player)
     }
     sleep(2);
 
-    PRESS_ENTER_TO_CONTINUE();
+    PRESS_A_KEY_TO_CONTINUE();
     
     elapsed_time = time(NULL) - start_t;
     total_time[player]+=elapsed_time;
@@ -393,7 +394,7 @@ void challenge(char *secret, unsigned char player)
     printw("Match score: %u", match_score);
     refresh();
     sleep(1);
-    PRESS_ENTER_TO_CONTINUE();
+    PRESS_A_KEY_TO_CONTINUE();
 }
 
 
@@ -403,7 +404,7 @@ void select_secret(unsigned short insert_secret_words, char *secret)
     {
         unsigned short secret_index;
 
-        secret_index = rand()%dict_size;
+        secret_index = rand()%secret_dict_size;
         strcpy(secret,dict[secret_index]);
     }
     else
@@ -442,7 +443,7 @@ void score_board(void)
     
     sleep(1);
     
-    PRESS_ENTER_TO_CONTINUE();
+    PRESS_A_KEY_TO_CONTINUE();
 }
 
 
@@ -620,6 +621,15 @@ int main(int argc, char **argv)
         clrscr();
         dict_size = read_dict(dict_file);
         
+        if((word_size = 5) && dict_file==ENG)
+        {
+            secret_dict_size = 2500;
+        }
+        else
+        {
+            secret_dict_size = dict_size;
+        }
+        
         gotoxy(0,2);
         printw("Words in the dictionary %u\n", dict_size);
         refresh();
@@ -632,7 +642,7 @@ int main(int argc, char **argv)
         refresh();
         sleep(1);
 
-        PRESS_ENTER_TO_CONTINUE();
+        PRESS_A_KEY_TO_CONTINUE();
 
         srand(time(NULL));
 
@@ -665,14 +675,18 @@ int main(int argc, char **argv)
                 }
                 
                 clrscr();
+
+                sleep(1);
+                PRESS_A_KEY_TO_CONTINUE();
+                
+                clrscr();
+                refresh();
+                
                 printxy(0,0,"-----------------------------------------------------------------------------");
                 gotoxy(0,1);
                 printw("Player no. %d       Challenge no. %d", player, i);
                 refresh();
                 printxy(0,2,"-----------------------------------------------------------------------------");
-           
-                sleep(1);
-                PRESS_ENTER_TO_CONTINUE();
 
                 challenge(secret, player);
                 

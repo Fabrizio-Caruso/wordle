@@ -26,6 +26,7 @@ char attempt[MAX_WORD_SIZE];
 unsigned char dict_file;
 
 unsigned short dict_size;
+unsigned short secret_dict_size;
 
 unsigned short freq[VECT_SIZE];
 unsigned short hint[VECT_SIZE];
@@ -257,7 +258,7 @@ void select_secret(unsigned short insert_secret_words, char *secret)
     {
         unsigned short secret_index;
 
-        secret_index = rand()%dict_size;
+        secret_index = rand()%secret_dict_size;
         strcpy(secret,dict[secret_index]);
     }
     else
@@ -315,6 +316,15 @@ int main(int argc, char **argv)
         printf("\nSecret word will have %d letters\n", word_size);
         
         dict_size = read_dict(dict_file);
+        
+        if((word_size = 5) && dict_file==ENG)
+        {
+            secret_dict_size = 2500;
+        }
+        else
+        {
+            secret_dict_size = dict_size;
+        }
         
         printf("Words in the dictionary %u\n", dict_size);
         

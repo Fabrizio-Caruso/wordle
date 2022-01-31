@@ -40,7 +40,7 @@
 
 #define MAX_SCORE_FOR_PARTIAL_MATCH 200
 
-#define BASE_SCORE 800
+#define BASE_SCORE 700
 
 #define MAX_WORD_SIZE 16
 

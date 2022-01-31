@@ -15,6 +15,8 @@ extern char dict[MAX_DICT_SIZE][MAX_WORD_SIZE];
 // char attempt[MAX_WORD_SIZE];
 // unsigned char dict_file;
 extern unsigned short dict_size;
+extern unsigned short secret_dict_size;
+
 extern unsigned short freq[VECT_SIZE];
 
 extern unsigned short number_of_players;
@@ -204,31 +206,30 @@ unsigned short compute_score(unsigned char exact_matches, unsigned char attempt_
     // printw("word_size %u\n", word_size);
     // sleep(2);
     
-    
+    if(elapsed_time>300)
+    {
+        time_penalty = 300;
+    }
+    else if (elapsed_time>60)
+    {
+        time_penalty = elapsed_time - 60;
+    }
+        
     if(exact_matches<word_size)
     {
         unsigned short points_for_single_letter = MAX_SCORE_FOR_PARTIAL_MATCH/(word_size-1);
-        
-        return exact_matches * points_for_single_letter;
+
+        return exact_matches * points_for_single_letter - time_penalty/12;
     }
     else
     {    
         if (attempt_number<5)
         {
-            bonus = 200;
+            bonus = 300;
         }
         else if (attempt_number<6)
         {
             bonus = 100;
-        }
-        
-        if(elapsed_time>300)
-        {
-            time_penalty = 300;
-        }
-        else if (elapsed_time>60)
-        {
-            time_penalty = elapsed_time - 60;
         }
         
         return BASE_SCORE + bonus - time_penalty;

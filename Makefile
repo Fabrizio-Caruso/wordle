@@ -1,5 +1,5 @@
-# CC=x86_64-w64-mingw32-gcc
-CC=gcc
+CC=x86_64-w64-mingw32-gcc
+# CC=gcc
 CFLAGS=-I. 
 
 wordle.o: wordle.c
@@ -21,6 +21,8 @@ wordle_ncurses: wordle_ncurses.o common.o
 test: test.c
 	$(CC) test.c -o test   -I../CSFML-2.5.1-windows-32-bit/include/  -L../CSFML-2.5.1-windows-32-bit/lib/gcc/ -lmingw32 -lcsfml-system -lcsfml-graphics -lcsfml-window  
 
+test_sdl2: test_sdl2
+	$(CC) test_sdl2.c -o  test_sdl2 -L/usr/include/ -I/usr/include/SDL2/ -lSDL2
 
 clean:
 	rm -f *.o
