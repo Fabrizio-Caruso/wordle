@@ -379,18 +379,16 @@ void challenge(char *secret, unsigned char player)
         setcolor(WHITE);
         refresh();
     }
-    sleep(2);
-
-    PRESS_A_KEY_TO_CONTINUE();
-    
     elapsed_time = time(NULL) - start_t;
+    match_score = compute_score(exact_matches, attempt_number, elapsed_time);  
+    sleep(2);
+    PRESS_A_KEY_TO_CONTINUE();
     total_time[player]+=elapsed_time;
     clrscr();
     move(0,0);
     printw("Attempts: %d\n", attempt_number);
     printw("Time: %d\n", elapsed_time);
     refresh();
-    match_score = compute_score(exact_matches, attempt_number, elapsed_time);   
     printw("Match score: %u", match_score);
     refresh();
     sleep(1);
@@ -606,17 +604,21 @@ int main(int argc, char **argv)
             
 
             curs_set(0);
-
-            printxy(0,8,"How many words per game?");
             
-            selection = getchar();
-            
-            number_of_challenges = selection - '0';    
+            do
+            {
+                printxy(0,8,"How many words per game (1-9)?");
+                
+                selection = getch();
+                
+                number_of_challenges = selection - '0';    
+            } while((selection<0) || (selection>9));
 
             move(9,0);
-            printxy(0,9,"You have selected %d words per game per player.");
+            printw("You have selected %u words per game per player.", number_of_challenges);
             refresh();
             sleep(1);
+            PRESS_A_KEY_TO_CONTINUE();
         }
 
         clrscr();
