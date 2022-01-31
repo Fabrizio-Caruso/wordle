@@ -616,6 +616,7 @@ int main(int argc, char **argv)
             move(9,0);
             printxy(0,9,"You have selected %d words per game per player.");
             refresh();
+            sleep(1);
         }
 
         clrscr();

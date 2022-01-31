@@ -42,7 +42,7 @@ unsigned short total_time[MAX_PLAYERS];
 
 unsigned short word_size;
 
-
+unsigned short number_of_players;
 
 
 void instructions(void)
@@ -248,7 +248,7 @@ void challenge(char *secret, unsigned char player)
     total_time[player]+=elapsed_time;
     printf("Attempts: %d\n", attempt_number);
     printf("Time: %d\n", elapsed_time);
-    match_score[player] = compute_score(word_found, attempt_number, exact_matches, elapsed_time);   
+    match_score[player] = compute_score(exact_matches, attempt_number, elapsed_time);     
 }
 
 
@@ -278,7 +278,6 @@ int main(int argc, char **argv)
 {
     unsigned char i;
     unsigned int number_of_challenges;
-    unsigned short number_of_players;
     unsigned char player;
     unsigned short insert_secret_words;
     unsigned short same_secret;
