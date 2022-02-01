@@ -144,7 +144,7 @@ void reset_vect(unsigned short *vect)
 {
     unsigned char i;
     
-    for(i='a';i<'z';++i)
+    for(i='a';i<='z';++i)
     {
         vect[i] = 0;
     }
@@ -214,8 +214,12 @@ unsigned short compute_score(unsigned char exact_matches, unsigned char attempt_
     {
         time_penalty = elapsed_time - 60;
     }
-        
-    if(exact_matches<word_size)
+    
+    if(!exact_matches)
+    {
+        return 0;
+    }
+    else if(exact_matches<word_size)
     {
         unsigned short points_for_single_letter = MAX_SCORE_FOR_PARTIAL_MATCH/(word_size-1);
 

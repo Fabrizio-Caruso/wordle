@@ -18,6 +18,7 @@
 #define clrscr() printf("\e[1;1H\e[2J")
 #endif
 
+#define SECRET_5WORD_ENG_DICT_SIZE 2000
 
 char dict[MAX_DICT_SIZE][MAX_WORD_SIZE];
 
@@ -318,7 +319,7 @@ int main(int argc, char **argv)
         
         if((word_size = 5) && dict_file==ENG)
         {
-            secret_dict_size = 2500;
+            secret_dict_size = SECRET_5WORD_ENG_DICT_SIZE;
         }
         else
         {

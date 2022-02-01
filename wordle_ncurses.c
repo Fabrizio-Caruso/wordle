@@ -40,6 +40,8 @@
 #define XSize 80
 #define YSize 24
 
+#define SECRET_5WORD_ENG_DICT_SIZE 2000
+
 char dict[MAX_DICT_SIZE][MAX_WORD_SIZE];
 
 char attempt[MAX_WORD_SIZE];
@@ -65,7 +67,7 @@ unsigned short word_size;
 
 unsigned short number_of_players;
 
-unsigned int number_of_challenges;
+unsigned char number_of_challenges;
 
 
 // #if defined(_BACKGROUND_COLOR) && BACKGROUND_COLOR==_XL_WHITE
@@ -111,7 +113,7 @@ void printxy(uint8_t x, uint8_t y, char * str)
     // cputc(ch);
 // }
 
-void init_scrteen(void)
+void init_screen(void)
 {
     #if defined(__ATARI_ST__)
         putenv("TERM=st52");
@@ -470,7 +472,7 @@ int main(int argc, char **argv)
     char secret[9];    
     char selection;
 
-    init_scrteen();
+    init_screen();
     setcolor(WHITE);
 
     while(1)
@@ -609,10 +611,16 @@ int main(int argc, char **argv)
             {
                 printxy(0,8,"How many words per game (1-9)?");
                 
+                
                 selection = getch();
                 
                 number_of_challenges = selection - '0';    
-            } while((selection<0) || (selection>9));
+                
+                // move(8,0);
+                // printw("You have selected %u words\n", number_of_challenges);
+                // refresh();
+                // sleep(2);
+            } while((number_of_challenges<0) || (number_of_challenges>9));
 
             move(9,0);
             printw("You have selected %u words per game per player.", number_of_challenges);
@@ -626,7 +634,7 @@ int main(int argc, char **argv)
         
         if((word_size = 5) && dict_file==ENG)
         {
-            secret_dict_size = 2500;
+            secret_dict_size = SECRET_5WORD_ENG_DICT_SIZE;
         }
         else
         {
